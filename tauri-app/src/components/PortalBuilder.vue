@@ -229,21 +229,21 @@ export default {
 
 <style scoped>
 .portal-builder {
-  padding: 16px;
+  padding: 8px;
   overflow-y: auto;
   height: 100%;
 }
 .portal-header {
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 .categories {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 .category {
   border: 1px solid var(--border);
@@ -255,7 +255,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
 }
@@ -272,15 +272,15 @@ export default {
 .cards-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 16px;
+  gap: 8px;
+  padding: 12px;
   align-items: flex-start;
 }
 .card-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 130px;
+  width: 110px;
   position: relative;
   cursor: grab;
   transition: transform 0.15s ease, opacity 0.15s ease;
@@ -309,8 +309,8 @@ export default {
   opacity: 1;
 }
 .card {
-  width: 130px;
-  height: 100px;
+  width: 110px;
+  height: 80px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-surface);
@@ -318,7 +318,7 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   transition: all var(--transition);
 }
@@ -329,7 +329,7 @@ export default {
   box-shadow: 0 4px 12px rgba(124, 92, 252, 0.2);
 }
 .card-icon {
-  font-size: 32px;
+  font-size: 28px;
   color: var(--accent);
 }
 .card-title {
@@ -339,7 +339,7 @@ export default {
 }
 .card-drop-end {
   width: 20px;
-  min-height: 100px;
+  min-height: 80px;
   transition: all 0.15s ease;
   border-radius: var(--radius-sm);
 }
@@ -351,7 +351,7 @@ export default {
 .cards-empty {
   color: var(--text-muted);
   font-size: 13px;
-  padding: 16px;
+  padding: 12px;
   border: 2px dashed transparent;
   border-radius: var(--radius);
   transition: all 0.15s ease;

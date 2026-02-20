@@ -91,6 +91,8 @@ export const COMPONENT_TYPES = [
     { label: 'セレクト', type: 'セレクトボックス(ラベル付き)' },
     { label: 'ラジオ', type: 'ラジオボタン(ラベル付き)' },
     { label: 'チェック', type: 'チェックボックス(ラベル付き)' },
+    { label: 'テーブル', type: 'テーブル(ページネーション付)' },
+    { label: 'ボタン', type: 'ボタン' },
 ]
 
 function createDefaultTab() {
@@ -253,13 +255,36 @@ export const store = reactive({
 
     addComponent(tab, ctype) {
         if (tab) {
+            const isTable = ctype.includes('テーブル');
+            const isButton = ctype.includes('ボタン') && !ctype.includes('ラジオ');
+
+            let options = undefined;
+            let defaultValue = undefined;
+            if (ctype.includes('セレクト') || ctype.includes('ラジオ') || ctype.includes('チェック')) {
+                options = ['選択肢1', '選択肢2', '選択肢3'];
+                defaultValue = '選択肢1';
+            }
+
+            let label = undefined;
+            if (ctype.includes('ラベル付き')) {
+                if (ctype.includes('セレクト')) label = '選択してください';
+                else if (ctype.includes('カレンダー')) label = '日付';
+                else if (ctype.includes('ラジオ')) label = 'ラジオ選択';
+                else if (ctype.includes('チェック')) label = 'チェック選択';
+                else label = 'ラベル';
+            } else if (isButton) {
+                label = 'ボタン';
+            }
+
             tab.components.push({
                 id: generateId(),
                 type: ctype,
                 x: 10,
                 y: 10,
-                w: 200,
-                h: 60,
+                w: isTable ? 400 : (isButton ? 120 : 180),
+                h: isTable ? 240 : (isButton ? 36 : 56),
+                ...(options ? { options, defaultValue } : {}),
+                ...(label ? { label } : {})
             })
         }
     },

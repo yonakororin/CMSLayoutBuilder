@@ -254,11 +254,11 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
+  padding: 4px 12px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
-  height: 50px;
-  min-height: 50px;
+  height: 40px;
+  min-height: 40px;
 }
 .app-title {
   font-size: 16px;
@@ -275,15 +275,15 @@ export default {
 
 /* ---- Sidebar ---- */
 .app-sidebar {
-  width: 220px;
-  min-width: 220px;
+  width: 180px;
+  min-width: 180px;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border);
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 .sidebar-section {
   margin-bottom: 8px;
@@ -292,7 +292,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
+  padding: 4px 6px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -302,11 +302,11 @@ export default {
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 4px;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   transition: all var(--transition);
 }
 .sidebar-item:hover { background: var(--bg-hover); }

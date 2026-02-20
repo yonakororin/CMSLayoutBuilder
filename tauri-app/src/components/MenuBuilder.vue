@@ -234,7 +234,7 @@ export default {
   overflow: hidden;
 }
 .menu-header {
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
 }
@@ -244,11 +244,11 @@ export default {
   overflow: hidden;
 }
 .menu-sidebar {
-  width: 240px;
-  min-width: 240px;
+  width: 200px;
+  min-width: 200px;
   border-right: 1px solid var(--border);
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -260,7 +260,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
+  padding: 4px 6px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background var(--transition);
@@ -272,7 +272,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px 4px 24px;
+  padding: 2px 6px 2px 20px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 13px;
@@ -286,22 +286,22 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 8px;
+  padding: 4px;
 }
 .tab-bar {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 6px;
+  padding-bottom: 4px;
   flex-wrap: wrap;
 }
 .tab {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 2px 8px;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -320,8 +320,8 @@ export default {
 .toolbox {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .empty-content {

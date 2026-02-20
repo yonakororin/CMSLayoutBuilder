@@ -96,7 +96,7 @@ export function generatePortalHtml(page) {
       background-image: radial-gradient(circle at top right, #e0e7ff, transparent 40%),
                         radial-gradient(circle at bottom left, #e0e7ff, transparent 40%);
       color: var(--text-main);
-      margin: 0; padding: 40px 32px; 
+      margin: 0; padding: 24px 16px; 
       min-height: 100vh;
       display: flex; flex-direction: column; align-items: center;
       box-sizing: border-box;
@@ -107,29 +107,29 @@ export function generatePortalHtml(page) {
     h1 { 
       text-align: left; color: var(--text-main); 
       font-weight: 800; font-size: 2.5rem; letter-spacing: -0.03em;
-      margin-top: 0; margin-bottom: 32px;
-      padding-bottom: 20px; border-bottom: 2px solid var(--border);
+      margin-top: 0; margin-bottom: 24px;
+      padding-bottom: 12px; border-bottom: 2px solid var(--border);
     }
     .category { 
       background: var(--bg-card); border-radius: var(--radius); 
-      padding: 24px 28px; margin-bottom: 24px; 
+      padding: 16px 20px; margin-bottom: 16px; 
       box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.6);
       border-top: 4px solid var(--category-theme);
       backdrop-filter: blur(10px);
     }
     .category h2 { 
       margin-top: 0; font-size: 1.3rem; font-weight: 700; 
-      color: var(--category-theme); margin-bottom: 16px;
+      color: var(--category-theme); margin-bottom: 12px;
       letter-spacing: -0.01em;
     }
-    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
     .card { 
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 90px; border: 1px solid var(--border); border-radius: 10px;
+      height: 80px; border: 1px solid var(--border); border-radius: 10px;
       text-decoration: none; color: var(--text-main); 
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
       background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      padding: 12px; box-sizing: border-box;
+      padding: 8px; box-sizing: border-box;
     }
     .card:hover { 
       transform: translateY(-4px); box-shadow: var(--shadow-hover); 
@@ -229,20 +229,20 @@ export function generateMenuHtml(page) {
       color: var(--text-main); overflow: hidden;
     }
     .sidebar { 
-      box-sizing: border-box; width: 240px; min-width: 240px;
+      box-sizing: border-box; width: 220px; min-width: 220px;
       background: var(--bg-sidebar); border-right: 1px solid var(--sidebar-border); 
-      padding: 24px 16px; z-index: 10;
-      display: flex; flex-direction: column; gap: 8px;
+      padding: 16px 12px; z-index: 10;
+      display: flex; flex-direction: column; gap: 4px;
       transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s;
       overflow-x: hidden; white-space: nowrap; color: var(--sidebar-text);
       box-shadow: 4px 0 24px rgba(0,0,0,0.15);
     }
     .sidebar.closed {
-      width: 88px; min-width: 88px; padding: 24px 16px;
+      width: 72px; min-width: 72px; padding: 16px 12px;
     }
     .sidebar-header {
-      display: flex; align-items: center; gap: 16px; margin-bottom: 32px;
-      padding-bottom: 24px; border-bottom: 2px solid var(--sidebar-border);
+      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+      padding-bottom: 16px; border-bottom: 2px solid var(--sidebar-border);
     }
     .sidebar.closed .sidebar-header { border-bottom-color: transparent; justify-content: center; }
     .hamburger {
@@ -267,11 +267,11 @@ export function generateMenuHtml(page) {
     .sidebar.closed .sidebar-content { opacity: 0; pointer-events: none; }
     
     /* Menu Titles & Submenus (Dark Theme) */
-    .menu-item { margin-bottom: 2px; }
+    .menu-item { margin-bottom: 0; }
     .menu-title {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 14px; font-size: 0.95rem; font-weight: 600;
-      color: var(--sidebar-text); border-radius: 10px;
+      padding: 8px 12px; font-size: 0.9rem; font-weight: 600;
+      color: var(--sidebar-text); border-radius: 8px;
       cursor: pointer; transition: all 0.2s;
       border: 1px solid transparent;
     }
@@ -289,16 +289,16 @@ export function generateMenuHtml(page) {
     .menu-item.open .expand-icon { transform: rotate(180deg); color: var(--sidebar-active); } 
     
     .menu-item ul { 
-      list-style: none; padding: 0; margin: 6px 0 0 16px; 
-      display: none; flex-direction: column; gap: 4px; 
+      list-style: none; padding: 0; margin: 4px 0 0 12px; 
+      display: none; flex-direction: column; gap: 2px; 
       border-left: 2px solid var(--sidebar-border);
     }
     .menu-item.open ul { display: flex; animation: slideDown 0.3s ease; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     
     .menu-item a { 
-      text-decoration: none; color: var(--sidebar-muted); font-size: 0.9rem; font-weight: 500;
-      display: block; padding: 8px 12px; border-radius: 8px; margin-left: 12px;
+      text-decoration: none; color: var(--sidebar-muted); font-size: 0.85rem; font-weight: 500;
+      display: block; padding: 6px 10px; border-radius: 8px; margin-left: 10px;
       transition: all 0.2s; border: 1px solid transparent;
     }
     .menu-item a:hover { 
@@ -307,27 +307,27 @@ export function generateMenuHtml(page) {
     
     /* Main Content Area */
     .main { 
-      flex: 1; padding: 40px; overflow-y: auto; position: relative;
+      flex: 1; padding: 24px; overflow-y: auto; position: relative;
       background-image: radial-gradient(circle at center, #ffffff 0%, transparent 100%);
     }
     
     .content-pane { 
       display: none; background: rgba(255,255,255,0.8); border-radius: var(--radius); 
-      padding: 40px; box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.6);
+      padding: 24px; box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.6);
       backdrop-filter: blur(10px);
       height: 100%; box-sizing: border-box; animation: fadeIn 0.4s ease;
     }
     .content-pane.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
-    .content-pane h3 { margin-top: 0; font-size: 1.75rem; font-weight: 800; margin-bottom: 28px; color: var(--text-main); letter-spacing: -0.02em; }
+    .content-pane h3 { margin-top: 0; font-size: 1.75rem; font-weight: 800; margin-bottom: 16px; color: var(--text-main); letter-spacing: -0.02em; }
     
     .tabs { 
-      display: flex; gap: 12px; margin-bottom: 28px; border-bottom: 2px solid var(--border); 
+      display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border); 
       padding-bottom: 0; 
     }
     .tab { 
-      padding: 12px 24px; cursor: pointer; border-bottom: 3px solid transparent; 
+      padding: 8px 16px; cursor: pointer; border-bottom: 3px solid transparent; 
       font-size: 1rem; font-weight: 600; color: var(--text-muted); 
       transition: all 0.2s; margin-bottom: -2px; border-radius: 8px 8px 0 0;
     }
@@ -344,25 +344,46 @@ export function generateMenuHtml(page) {
     
     .component { 
       position: absolute; border: 1px solid var(--border); background: var(--bg-card); 
-      padding: 12px; box-sizing: border-box; box-shadow: var(--shadow-sm); 
-      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      padding: 4px; box-sizing: border-box; box-shadow: var(--shadow-sm); 
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
       transition: box-shadow 0.2s;
     }
     .component:hover { box-shadow: var(--shadow-md); border-color: #cbd5e1; }
     
-    .c-html { background: transparent; border: none; box-shadow: none; color: var(--text-muted); font-size: 0.9rem; }
-    .c-input { flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; }
-    .c-input label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .c-html { background: transparent; border: none; box-shadow: none; color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+    .c-input { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
+    .c-input label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0px; }
     .c-input input, .c-input select { 
-      width: 100%; padding: 10px 14px; border: 1px solid var(--border); 
-      border-radius: 8px; box-sizing: border-box; font-size: 0.95rem;
+      width: 100%; padding: 4px 8px; border: 1px solid var(--border); 
+      border-radius: 4px; box-sizing: border-box; font-size: 0.85rem;
       transition: all 0.2s; background: #f8fafc;
     }
     .c-input input:focus, .c-input select:focus {
       outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); background: #ffffff;
     }
-    .c-radio-check { flex-direction: row; justify-content: flex-start; align-items: center; gap: 8px; }
-    .c-radio-check label { cursor: pointer; font-size: 0.95rem; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .c-radio-check { flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 0; }
+    .c-radio-check label { cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 4px; padding: 1px 0; }
+    
+    .c-table { flex-direction: column; padding: 0; overflow: hidden; justify-content: flex-start; }
+    .c-table-wrap { width: 100%; flex: 1; overflow-y: auto; overflow-x: auto; }
+    .c-table table { width: 100%; border-collapse: collapse; min-width: 300px; }
+    .c-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); position: sticky; top: 0; box-shadow: 0 2px 0 0 var(--border); }
+    .c-table td { padding: 8px 12px; font-size: 0.85rem; color: var(--text-main); border-bottom: 1px solid #e2e8f0; }
+    .c-table tbody tr:hover td { background: rgba(0,0,0,0.01); }
+    .c-table-footer { width: 100%; padding: 8px 12px; background: #ffffff; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+    .c-table-footer .info { font-size: 0.85rem; color: var(--text-muted); }
+    .c-table-footer .pagination { display: flex; gap: 4px; }
+    .c-table-footer .page-btn { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-main); transition: all 0.2s; }
+    .c-table-footer .page-btn:hover { background: #f1f5f9; }
+    .c-table-footer .page-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    
+    .c-button { flex-direction: column; justify-content: center; align-items: center; background: transparent; border: none; box-shadow: none; padding: 4px; }
+    .c-button button { 
+      width: 100%; height: 100%; border: none; border-radius: 6px; font-family: inherit;
+      background: var(--primary); color: #ffffff; font-size: 0.9rem; font-weight: 600; 
+      cursor: pointer; box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    .c-button button:hover { background: var(--primary-hover); box-shadow: var(--shadow-md); transform: translateY(-1px); }
     
     #welcome.active {
        display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
@@ -493,20 +514,57 @@ function generateComponentHtml(comp) {
     inner = 'HTML表示領域'
     cls += ' c-html'
   } else if (comp.type === 'インプット(ラベル付き)') {
-    inner = '<label>ラベル</label><input type="text" placeholder="テキスト入力" />'
+    inner = `<label>${comp.label || 'ラベル'}</label><input type="text" placeholder="テキスト入力" />`
     cls += ' c-input'
   } else if (comp.type === 'カレンダー(ラベル付き)') {
-    inner = '<label>日付</label><input type="date" />'
+    inner = `<label>${comp.label || '日付'}</label><input type="date" />`
     cls += ' c-input'
   } else if (comp.type === 'セレクトボックス(ラベル付き)') {
-    inner = '<label>選択</label><select><option>-- 選択 --</option></select>'
+    const opts = comp.options || ['-- 選択 --'];
+    const optsHtml = opts.map(o => `<option ${o === comp.defaultValue ? 'selected' : ''}>${o}</option>`).join('');
+    inner = `<label>${comp.label || '選択'}</label><select>${optsHtml}</select>`
     cls += ' c-input'
   } else if (comp.type === 'ラジオボタン(ラベル付き)') {
-    inner = '<label><input type="radio" name="${comp.id}" /> ラジオ</label>'
+    const opts = comp.options || ['ラジオ'];
+    const optsHtml = opts.map(o => `<label><input type="radio" name="${comp.id}" ${o === comp.defaultValue ? 'checked' : ''} /> ${o}</label>`).join('');
+    inner = `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 2px;">${comp.label || 'ラジオ選択'}</label>` + optsHtml;
     cls += ' c-radio-check'
   } else if (comp.type === 'チェックボックス(ラベル付き)') {
-    inner = '<label><input type="checkbox" /> チェック</label>'
+    const opts = comp.options || ['チェック'];
+    // For checkboxes, defaultValue can be an exact match check. If they want multiple, this simple logic just matches the string.
+    const optsHtml = opts.map(o => `<label><input type="checkbox" name="${comp.id}[]" ${o === comp.defaultValue ? 'checked' : ''} /> ${o}</label>`).join('');
+    inner = `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 2px;">${comp.label || 'チェック選択'}</label>` + optsHtml;
     cls += ' c-radio-check'
+  } else if (comp.type === 'テーブル(ページネーション付)') {
+    inner = `
+      <div class="c-table-wrap">
+        <table>
+          <thead>
+            <tr><th>ユーザーID</th><th>氏名</th><th>ステータス</th><th>登録日</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>001</td><td>山田 太郎</td><td><span style="color:#10b981;">● アクティブ</span></td><td>2024/01/10</td></tr>
+            <tr><td>002</td><td>佐藤 花子</td><td><span style="color:#f59e0b;">● 保留</span></td><td>2024/02/15</td></tr>
+            <tr><td>003</td><td>鈴木 一郎</td><td><span style="color:#ef4444;">● 停止</span></td><td>2024/03/20</td></tr>
+            <tr><td>004</td><td>田中 次郎</td><td><span style="color:#10b981;">● アクティブ</span></td><td>2024/04/05</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="c-table-footer">
+        <div class="info">全12件中 1-4件を表示</div>
+        <div class="pagination">
+          <button class="page-btn"><span class="material-icons" style="font-size:14px;">chevron_left</span></button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn"><span class="material-icons" style="font-size:14px;">chevron_right</span></button>
+        </div>
+      </div>
+    `
+    cls += ' c-table'
+  } else if (comp.type === 'ボタン') {
+    inner = `<button type="button">${comp.label || 'ボタン'}</button>`
+    cls += ' c-button'
   } else {
     inner = comp.type
   }

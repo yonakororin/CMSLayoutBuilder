@@ -11,47 +11,68 @@
         width: comp.w + 'px',
         height: comp.h + 'px',
       }"
+      @pointerdown="handlePointerDown($event, comp)"
+      @contextmenu.prevent.stop="showContextMenu($event, comp)"
     >
-      <!-- Drag handle (top bar) -->
-      <div
-        class="comp-drag-bar"
-        @pointerdown.prevent="startDrag($event, comp)"
-      >
-        <span class="material-icons xs">drag_indicator</span>
-        <span class="comp-type-label truncate">{{ comp.type }}</span>
-        <button class="btn-icon danger" @click.stop="$emit('removeComponent', comp.id)" style="padding:0">
-          <span class="material-icons xs">close</span>
-        </button>
-      </div>
-
       <!-- Component body -->
       <div class="comp-body">
+
         <!-- HTML表示領域 -->
         <div v-if="comp.type === 'HTML表示領域'" class="placeholder-html">
           HTML表示領域
         </div>
         <!-- インプット -->
         <div v-else-if="comp.type === 'インプット(ラベル付き)'" class="placeholder-input">
-          <label>ラベル</label>
+          <label><InlineEdit v-model="comp.label" /></label>
           <input type="text" disabled placeholder="テキスト入力" />
         </div>
         <!-- カレンダー -->
         <div v-else-if="comp.type === 'カレンダー(ラベル付き)'" class="placeholder-input">
-          <label><span class="material-icons xs">calendar_month</span> 日付</label>
+          <label class="flex items-center gap-1"><span class="material-icons xs">calendar_month</span> <InlineEdit v-model="comp.label" /></label>
           <input type="text" disabled placeholder="yyyy/mm/dd" />
         </div>
         <!-- セレクト -->
         <div v-else-if="comp.type === 'セレクトボックス(ラベル付き)'" class="placeholder-input">
-          <label>選択</label>
-          <select disabled><option>-- 選択 --</option></select>
+          <label><InlineEdit v-model="comp.label" /></label>
+          <select disabled>
+            <option v-for="opt in comp.options" :key="opt">{{ opt }}</option>
+          </select>
+          <div class="default-val-hint" v-if="comp.defaultValue">初期選択: {{ comp.defaultValue }}</div>
         </div>
         <!-- ラジオ -->
         <div v-else-if="comp.type === 'ラジオボタン(ラベル付き)'" class="placeholder-radio">
-          <label><input type="radio" disabled /> ラジオ</label>
+          <label class="label-heading"><InlineEdit v-model="comp.label" /></label>
+          <label v-for="opt in comp.options" :key="opt" class="opt-label">
+            <input type="radio" disabled :checked="opt === comp.defaultValue" /> {{ opt }}
+          </label>
         </div>
         <!-- チェック -->
         <div v-else-if="comp.type === 'チェックボックス(ラベル付き)'" class="placeholder-check">
-          <label><input type="checkbox" disabled /> チェック</label>
+          <label class="label-heading"><InlineEdit v-model="comp.label" /></label>
+          <label v-for="opt in comp.options" :key="opt" class="opt-label">
+            <input type="checkbox" disabled :checked="opt === comp.defaultValue" /> {{ opt }}
+          </label>
+        </div>
+        <!-- テーブル -->
+        <div v-else-if="comp.type === 'テーブル(ページネーション付)'" class="placeholder-table">
+          <div class="table-header">
+            <span>ID</span>
+            <span>名前</span>
+            <span>ステータス</span>
+          </div>
+          <div class="table-body">
+            <div class="table-row"><span>001</span><span>サンプル</span><span>アクティブ</span></div>
+            <div class="table-row"><span>002</span><span>ダミーデータ</span><span>停止</span></div>
+          </div>
+          <div class="table-pagination">
+            <span class="material-icons xs">chevron_left</span>
+            <span>1 / 5</span>
+            <span class="material-icons xs">chevron_right</span>
+          </div>
+        </div>
+        <!-- ボタン -->
+        <div v-else-if="comp.type === 'ボタン'" class="placeholder-button">
+          <button disabled><InlineEdit v-model="comp.label" fontSize="14px" fontWeight="600" /></button>
         </div>
         <div v-else class="placeholder-html">{{ comp.type }}</div>
       </div>
@@ -64,21 +85,36 @@
         <span class="material-icons xs">open_in_full</span>
       </div>
     </div>
+
+    <!-- Context Menu -->
+    <div v-if="contextMenu.show" class="context-menu" :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }">
+      <div class="context-menu-item" v-if="contextMenu.comp && contextMenu.comp.options !== undefined" @click="handleContextMenuOption('editOptions')">
+        <span class="material-icons xs">settings</span> 選択肢を編集
+      </div>
+      <div class="context-menu-item text-danger" @click="handleContextMenuOption('delete')">
+        <span class="material-icons xs">delete</span> 削除する
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { store } from '../store.js'
+import InlineEdit from './InlineEdit.vue'
 
 export default {
   name: 'ComponentCanvas',
+  components: { InlineEdit },
   props: {
     components: { type: Array, required: true },
   },
   emits: ['removeComponent'],
-  setup(props) {
+  setup(props, { emit }) {
     const canvasRef = ref(null)
+
+    // Context menu state
+    const contextMenu = ref({ show: false, x: 0, y: 0, comp: null })
 
     // Drag state
     let dragState = null
@@ -89,7 +125,10 @@ export default {
       return Math.round(v / 5) * 5
     }
 
-    function startDrag(e, comp) {
+    function handlePointerDown(e, comp) {
+      if (e.button === 2) return // Ignore right-click, handled by context menu
+      if (e.target.closest('.inline-edit') || e.target.closest('.comp-resize-handle') || e.target.closest('input, select')) return
+
       dragState = {
         comp,
         startX: e.clientX,
@@ -98,6 +137,26 @@ export default {
         origY: comp.y,
       }
       e.target.setPointerCapture(e.pointerId)
+    }
+
+    function showContextMenu(e, comp) {
+      contextMenu.value = { show: true, x: e.clientX, y: e.clientY, comp }
+    }
+
+    function closeContextMenu() {
+      contextMenu.value.show = false
+    }
+
+    function handleContextMenuOption(action) {
+      const comp = contextMenu.value.comp
+      if (!comp) return
+      
+      if (action === 'editOptions') {
+        editOptions(comp)
+      } else if (action === 'delete') {
+        emit('removeComponent', comp.id)
+      }
+      closeContextMenu()
     }
 
     function startResize(e, comp) {
@@ -131,17 +190,42 @@ export default {
       resizeState = null
     }
 
+    function editOptions(comp) {
+      if (!comp || comp.options === undefined) return;
+      const currentOpts = comp.options.join(',');
+      const newOpts = prompt('選択肢をカンマ区切りで入力してください (例: 選択肢1,選択肢2):', currentOpts);
+      if (newOpts !== null) {
+        let optsArray = newOpts.split(',').map(s => s.trim()).filter(s => s);
+        if (optsArray.length === 0) optsArray = ['選択肢1']; // fallback
+        comp.options = optsArray;
+        
+        const currentDef = comp.defaultValue;
+        const newDef = prompt('デフォルト(初期状態)で選択しておく値を入力してください。(空でも可):', currentDef || '');
+        if (newDef !== null) {
+          comp.defaultValue = newDef.trim();
+        }
+      }
+    }
+
     onMounted(() => {
       window.addEventListener('pointermove', onPointerMove)
       window.addEventListener('pointerup', onPointerUp)
+      window.addEventListener('click', closeContextMenu)
+      window.addEventListener('contextmenu', closeContextMenu)
     })
 
     onUnmounted(() => {
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
+      window.removeEventListener('click', closeContextMenu)
+      window.removeEventListener('contextmenu', closeContextMenu)
     })
 
-    return { canvasRef, startDrag, startResize, store }
+    return { 
+      canvasRef, handlePointerDown, startResize, 
+      contextMenu, showContextMenu, handleContextMenuOption,
+      store 
+    }
   },
 }
 </script>
@@ -169,34 +253,28 @@ export default {
   flex-direction: column;
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   transition: box-shadow 0.1s;
+  cursor: grab;
 }
 .canvas-component:hover {
   box-shadow: 0 2px 8px rgba(124, 92, 252, 0.3);
   border-color: var(--accent);
 }
-.comp-drag-bar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  cursor: grab;
-  user-select: none;
-  min-height: 24px;
-}
-.comp-drag-bar:active { cursor: grabbing; }
-.comp-type-label {
-  flex: 1;
-  font-size: 11px;
-  color: var(--text-muted);
-}
+.canvas-component:active { cursor: grabbing; }
+
 .comp-body {
   flex: 1;
   padding: 6px;
   overflow: hidden;
+  position: relative;
+}
+.comp-body > div {
   pointer-events: none;
+}
+.comp-body label {
+  pointer-events: auto; /* allow clicking inline edit */
+}
+.comp-body .placeholder-button button {
+  pointer-events: auto; /* allow clicking inline edit in button */
 }
 .comp-resize-handle {
   position: absolute;
@@ -234,6 +312,11 @@ export default {
   flex-direction: column;
   gap: 4px;
 }
+.default-val-hint {
+  font-size: 10px;
+  color: var(--primary);
+  margin-top: -2px;
+}
 .placeholder-input label {
   font-size: 11px;
   color: var(--text-secondary);
@@ -247,12 +330,120 @@ export default {
   font-size: 12px;
   padding: 3px 6px;
 }
-.placeholder-radio label,
-.placeholder-check label {
-  font-size: 12px;
+.placeholder-radio,
+.placeholder-check {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.label-heading {
+  font-size: 11px;
   color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.placeholder-radio .opt-label,
+.placeholder-check .opt-label {
+  font-size: 12px;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 4px;
+  padding: 1px 0;
+}
+.placeholder-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+.table-header {
+  display: flex;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.table-header span, .table-row span {
+  flex: 1;
+}
+.table-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.table-row {
+  display: flex;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+}
+.table-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.placeholder-button {
+  width: 100%;
+  height: 100%;
+}
+.placeholder-button button {
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  pointer-events: none;
+  font-family: inherit;
+}
+
+/* Context Menu */
+.context-menu {
+  position: fixed;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+.context-menu-item {
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  transition: background 0.15s;
+}
+.context-menu-item:hover {
+  background: var(--bg-hover);
+}
+.context-menu-item.text-danger {
+  color: var(--danger);
+}
+.context-menu-item.text-danger:hover {
+  background: var(--danger);
+  color: #fff;
 }
 </style>
