@@ -15,7 +15,8 @@
       <div v-for="cat in page.categories" :key="cat.id" class="category">
         <div class="category-header">
           <InlineEdit v-model="cat.name" fontWeight="600" />
-          <div v-if="!store.isViewMode" class="flex gap-1">
+          <div v-if="!store.isViewMode" class="flex gap-1" style="align-items: center;">
+            <input type="color" v-model="cat.themeColor" title="テーマカラー" class="category-color-picker" />
             <button class="btn btn-primary" @click="store.addCard(page.id, cat.id)">
               <span class="material-icons xs">add</span> カード
             </button>
@@ -261,6 +262,16 @@ export default {
   padding: 8px 12px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
+}
+.category-color-picker {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  margin-right: 4px;
 }
 .cards-container {
   display: flex;

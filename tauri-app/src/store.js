@@ -10,31 +10,77 @@ function generateId() {
 
 // Icon options available for cards
 export const ICON_OPTIONS = [
+    // Basic / Navigation
     { label: 'フォルダ', icon: 'folder' },
-    { label: '設定', icon: 'settings' },
-    { label: 'ユーザー', icon: 'person' },
-    { label: 'グループ', icon: 'group' },
     { label: 'ホーム', icon: 'home' },
     { label: '検索', icon: 'search' },
-    { label: 'スター', icon: 'star' },
-    { label: 'お気に入り', icon: 'favorite' },
+    { label: '設定', icon: 'settings' },
+    { label: 'メニュー', icon: 'menu' },
+    { label: 'アプリ', icon: 'apps' },
+    { label: 'リンク', icon: 'link' },
+    { label: '外部サイト', icon: 'open_in_new' },
+
+    // Communication / Users
+    { label: 'ユーザー', icon: 'person' },
+    { label: 'グループ', icon: 'group' },
     { label: 'メール', icon: 'mail' },
     { label: 'チャット', icon: 'chat' },
+    { label: '電話', icon: 'phone' },
     { label: '通知', icon: 'notifications' },
+    { label: 'サポート', icon: 'support_agent' },
+
+    // Status / Feedback
+    { label: 'お気に入り', icon: 'favorite' },
+    { label: 'スター', icon: 'star' },
+    { label: 'いいね', icon: 'thumb_up' },
+    { label: 'チェック', icon: 'check_circle' },
+    { label: '情報', icon: 'info' },
+    { label: 'エラー', icon: 'error' },
+    { label: '警告', icon: 'warning' },
+    { label: 'ヘルプ', icon: 'help' },
+
+    // Office / Productivity
     { label: 'カレンダー', icon: 'calendar_month' },
+    { label: 'スケジュール', icon: 'schedule' },
     { label: 'リスト', icon: 'list' },
-    { label: 'ダッシュ', icon: 'dashboard' },
+    { label: 'タスク', icon: 'assignment' },
+    { label: 'ドキュメント', icon: 'article' },
+    { label: 'メモ', icon: 'description' },
+    { label: 'ダッシュボード', icon: 'dashboard' },
+    { label: 'ウィジェット', icon: 'widgets' },
     { label: '分析', icon: 'analytics' },
-    { label: 'ショップ', icon: 'shopping_cart' },
-    { label: '支払い', icon: 'payments' },
-    { label: 'セキュリティ', icon: 'security' },
+    { label: 'グラフ', icon: 'bar_chart' },
+    { label: 'レポート', icon: 'assessment' },
+    { label: '仕事', icon: 'work' },
+    { label: '印刷', icon: 'print' },
+
+    // Tech / Development
+    { label: 'コード', icon: 'code' },
+    { label: 'ターミナル', icon: 'terminal' },
     { label: 'ビルド', icon: 'build' },
+    { label: 'バグ', icon: 'bug_report' },
+    { label: 'セキュリティ', icon: 'security' },
+    { label: '鍵', icon: 'lock' },
     { label: 'データ', icon: 'storage' },
     { label: 'クラウド', icon: 'cloud' },
+    { label: '地球・Web', icon: 'public' },
+    { label: '拡張機能', icon: 'extension' },
+
+    // Commerce / Media
+    { label: 'ショップ', icon: 'shopping_cart' },
+    { label: '支払い', icon: 'payments' },
     { label: '画像', icon: 'image' },
     { label: '動画', icon: 'videocam' },
+    { label: '音楽', icon: 'music_note' },
     { label: '地図', icon: 'map' },
-    { label: 'ヘルプ', icon: 'help' },
+    { label: 'お店', icon: 'store' },
+    { label: '配送', icon: 'local_shipping' },
+
+    // File Actions
+    { label: 'ダウンロード', icon: 'download' },
+    { label: 'アップロード', icon: 'upload' },
+    { label: '添付', icon: 'attach_file' },
+    { label: '保存', icon: 'save' },
 ]
 
 // Component types for menu builder
@@ -98,6 +144,7 @@ export const store = reactive({
             page.categories.push({
                 id: generateId(),
                 name: '新しいカテゴリ',
+                themeColor: '#4f46e5',
                 cards: [],
             })
         }
