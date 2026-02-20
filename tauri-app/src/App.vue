@@ -151,7 +151,8 @@ export default {
             const portalDir = await dirHandle.getDirectoryHandle('ポータルページ', { create: true })
             for (const page of store.portalPages) {
               const html = generatePortalHtml(page)
-              const ph = await portalDir.getFileHandle(`${page.name}.html`, { create: true })
+              const pageDir = await portalDir.getDirectoryHandle(page.name, { create: true })
+              const ph = await pageDir.getFileHandle('index.html', { create: true })
               const pw = await ph.createWritable()
               await pw.write(html)
               await pw.close()
@@ -161,7 +162,8 @@ export default {
             const menuDir = await dirHandle.getDirectoryHandle('メニューページ', { create: true })
             for (const page of store.menuPages) {
               const html = generateMenuHtml(page)
-              const mh = await menuDir.getFileHandle(`${page.name}.html`, { create: true })
+              const pageDir = await menuDir.getDirectoryHandle(page.name, { create: true })
+              const mh = await pageDir.getFileHandle('index.html', { create: true })
               const mw = await mh.createWritable()
               await mw.write(html)
               await mw.close()
