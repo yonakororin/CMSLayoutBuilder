@@ -102,9 +102,12 @@ export function generateMenuHtml(page) {
   let menusHtml = page.menus.map((menu, mIdx) => {
     if (menu.submenus.length > 0) {
       return `
-        <div class="menu-item">
-          <h3>${menu.name}</h3>
-          <ul>${menu.submenus.map((sub, sIdx) => `
+        <div class="menu-item has-submenu">
+          <div class="menu-title" onclick="toggleSubmenu('${mIdx}')">
+            <span>${menu.name}</span>
+            <span class="material-icons expand-icon">expand_more</span>
+          </div>
+          <ul id="submenu-${mIdx}" class="submenu">${menu.submenus.map((sub, sIdx) => `
             <li><a href="#content-${mIdx}-${sIdx}" onclick="showContent('content-${mIdx}-${sIdx}')">${sub.name}</a></li>
           `).join('')}</ul>
         </div>
@@ -112,7 +115,9 @@ export function generateMenuHtml(page) {
     } else {
       return `
         <div class="menu-item menu-item-direct">
-          <a href="#content-${mIdx}-main" onclick="showContent('content-${mIdx}-main')">${menu.name}</a>
+          <div class="menu-title" onclick="showContentDirect('content-${mIdx}-main')">
+            <span>${menu.name}</span>
+          </div>
         </div>
       `
     }
@@ -184,27 +189,38 @@ export function generateMenuHtml(page) {
       transition: opacity 0.2s; opacity: 1; overflow-y: auto; height: 100%;
     }
     .sidebar.closed .sidebar-content { opacity: 0; pointer-events: none; }
-    .menu-item { margin-bottom: 16px; }
-    .menu-item h3 { 
-      margin: 0 0 12px 0; font-size: 0.875rem; 
-      text-transform: uppercase; letter-spacing: 0.05em; 
-      color: var(--text-muted); font-weight: 700; 
+    .menu-item { margin-bottom: 8px; }
+    .menu-title {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; font-size: 0.95rem; font-weight: 600;
+      color: var(--text-main); border-radius: 8px;
+      cursor: pointer; transition: all 0.2s;
+      border: 1px solid transparent;
     }
-    .menu-item ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+    .menu-title:hover {
+      background: #f1f5f9; color: var(--primary);
+    }
+    /* Simple active indicator */
+    .menu-title:focus {
+      background: #e0e7ff; color: var(--primary); border-color: rgba(99, 102, 241, 0.3);
+    }
+    .expand-icon { font-size: 18px; color: var(--text-muted); transition: transform 0.2s; }
+    .menu-title:hover .expand-icon { color: var(--primary); }
+    .menu-item.open .expand-icon { transform: rotate(180deg); } 
+    
+    .menu-item ul { 
+      list-style: none; padding: 0; margin: 4px 0 0 12px; 
+      display: none; flex-direction: column; gap: 4px; 
+      border-left: 2px solid #e2e8f0;
+    }
+    .menu-item.open ul { display: flex; }
     .menu-item a { 
-      text-decoration: none; color: var(--text-main); font-size: 0.95rem; font-weight: 500;
-      display: block; padding: 8px 12px; border-radius: 8px;
+      text-decoration: none; color: var(--text-muted); font-size: 0.9rem; font-weight: 500;
+      display: block; padding: 8px 12px; border-radius: 6px; margin-left: 8px;
       transition: all 0.2s; border: 1px solid transparent;
     }
-    .menu-item-direct a {
-      font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); padding: 8px 12px; border-radius: 8px;
-    }
     .menu-item a:hover { 
-      background: #f1f5f9; color: var(--primary); 
-    }
-    /* Simple active indicator via JS click */
-    .menu-item a:focus {
-      background: #e0e7ff; color: var(--primary); border-color: rgba(99, 102, 241, 0.3);
+      background: #f1f5f9; color: var(--text-main); 
     }
     .main { 
       flex: 1; padding: 32px; overflow-y: auto; position: relative;
@@ -278,6 +294,32 @@ export function generateMenuHtml(page) {
   <script>
     function toggleSidebar() {
       document.querySelector('.sidebar').classList.toggle('closed');
+    }
+    function toggleSubmenu(mIdx) {
+      let isCollapsing = false;
+      const targetContainer = document.getElementById('submenu-' + mIdx)?.parentElement;
+      if (targetContainer && targetContainer.classList.contains('open')) {
+        isCollapsing = true;
+      }
+      
+      // Close all submenus
+      document.querySelectorAll('.menu-item.has-submenu').forEach(el => {
+        el.classList.remove('open');
+      });
+
+      if (isCollapsing) {
+        showContent('welcome');
+      } else {
+        if (targetContainer) targetContainer.classList.add('open');
+        showContent('welcome');
+      }
+    }
+    function showContentDirect(id) {
+      // Menu without submenus: close any open submenus
+      document.querySelectorAll('.menu-item.has-submenu').forEach(el => {
+        el.classList.remove('open');
+      });
+      showContent(id);
     }
     function showContent(id) {
       document.querySelectorAll('.content-pane').forEach(el => el.classList.remove('active'));

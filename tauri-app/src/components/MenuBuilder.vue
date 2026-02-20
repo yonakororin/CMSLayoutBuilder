@@ -17,7 +17,7 @@
           <div class="menu-item" :class="{ active: isMenuActive(menu) }" @click="selectMenu(menu)">
             <InlineEdit v-model="menu.name" fontWeight="500" />
             <div v-if="!store.isViewMode" class="flex gap-1" @click.stop>
-              <button class="btn-icon" @click="store.addSubmenu(page.id, menu.id)" title="サブメニュー追加">
+              <button class="btn-icon" @click.stop="addSubmenu(menu)" title="サブメニュー追加">
                 <span class="material-icons xs">add</span>
               </button>
               <button class="btn-icon danger" @click="store.removeMenu(page.id, menu.id)">
@@ -26,18 +26,20 @@
             </div>
           </div>
           <!-- Submenus -->
-          <div
-            v-for="sub in menu.submenus"
-            :key="sub.id"
-            class="submenu-item"
-            :class="{ active: activeTarget?.id === sub.id }"
-            @click="selectSubmenu(sub)"
-          >
-            <InlineEdit v-model="sub.name" />
-            <button v-if="!store.isViewMode" class="btn-icon danger" @click.stop="store.removeSubmenu(page.id, menu.id, sub.id)">
-              <span class="material-icons xs">close</span>
-            </button>
-          </div>
+          <template v-if="expandedMenuId === menu.id">
+            <div
+              v-for="sub in menu.submenus"
+              :key="sub.id"
+              class="submenu-item"
+              :class="{ active: activeTarget?.id === sub.id }"
+              @click="selectSubmenu(sub)"
+            >
+              <InlineEdit v-model="sub.name" />
+              <button v-if="!store.isViewMode" class="btn-icon danger" @click.stop="store.removeSubmenu(page.id, menu.id, sub.id)">
+                <span class="material-icons xs">close</span>
+              </button>
+            </div>
+          </template>
         </div>
 
         <button v-if="!store.isViewMode" class="btn btn-primary" style="margin-top:8px;" @click="store.addMenu(page.id)">
@@ -110,6 +112,7 @@ export default {
   setup(props) {
     const activeTarget = ref(null) // menu or submenu object (has .tabs)
     const activeTabId = ref(null)
+    const expandedMenuId = ref(null)
 
     const activeTab = computed(() => {
       if (!activeTarget.value || !activeTarget.value.tabs) return null
@@ -123,11 +126,33 @@ export default {
     }
 
     function selectMenu(menu) {
-      // If no submenus, select the menu itself as the content target
-      if (menu.submenus.length === 0) {
-        activeTarget.value = menu
-        activeTabId.value = menu.tabs?.[0]?.id || null
+      if (expandedMenuId.value === menu.id) {
+        // Toggle expansion to closed
+        expandedMenuId.value = null;
+        // If the current active content belongs to this menu, clear it
+        if (activeTarget.value && (activeTarget.value.id === menu.id || menu.submenus.some(s => s.id === activeTarget.value.id))) {
+          activeTarget.value = null;
+          activeTabId.value = null;
+        }
+      } else {
+        // Expand a new menu
+        expandedMenuId.value = menu.id;
+        
+        // If it has no submenus, select the menu itself as the content target
+        if (menu.submenus.length === 0) {
+          activeTarget.value = menu;
+          activeTabId.value = menu.tabs?.[0]?.id || null;
+        } else {
+          // It has submenus, so wait for the user to select one. Clear the pane.
+          activeTarget.value = null;
+          activeTabId.value = null;
+        }
       }
+    }
+
+    function addSubmenu(menu) {
+      store.addSubmenu(props.page.id, menu.id);
+      expandedMenuId.value = menu.id;
     }
 
     function selectSubmenu(sub) {
@@ -168,6 +193,7 @@ export default {
     watch(() => props.page.id, () => {
       activeTarget.value = null
       activeTabId.value = null
+      expandedMenuId.value = null
     })
 
     return {
@@ -175,9 +201,11 @@ export default {
       componentTypes: COMPONENT_TYPES,
       activeTarget,
       activeTabId,
+      expandedMenuId,
       activeTab,
       isMenuActive,
       selectMenu,
+      addSubmenu,
       selectSubmenu,
       addTab,
       removeTab,
