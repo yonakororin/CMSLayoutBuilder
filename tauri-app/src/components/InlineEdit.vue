@@ -35,7 +35,6 @@ export default {
     const inputStyle = { fontSize: props.fontSize, fontWeight: props.fontWeight }
 
     function startEdit() {
-      if (store.isViewMode) return
       editing.value = true
       nextTick(() => {
         if (inputRef.value) {

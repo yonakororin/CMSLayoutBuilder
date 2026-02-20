@@ -15,7 +15,7 @@
       <div v-for="cat in page.categories" :key="cat.id" class="category">
         <div class="category-header">
           <InlineEdit v-model="cat.name" fontWeight="600" />
-          <div v-if="!store.isViewMode" class="flex gap-1" style="align-items: center;">
+          <div class="flex gap-1" style="align-items: center;">
             <input type="color" v-model="cat.themeColor" title="テーマカラー" class="category-color-picker" />
             <button class="btn btn-primary" @click="store.addCard(page.id, cat.id)">
               <span class="material-icons xs">add</span> カード
@@ -37,7 +37,7 @@
               'drag-over-right': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === idx && dragOverInfo?.side === 'right',
               dragging: dragInfo?.catId === cat.id && dragInfo?.idx === idx
             }"
-            :draggable="!store.isViewMode"
+            :draggable="true"
             @dragstart="onDragStart($event, cat, idx)"
             @dragend="onDragEnd"
             @dragover.prevent="onDragOver($event, cat, idx)"
@@ -48,14 +48,14 @@
               <span class="material-icons card-icon">{{ card.icon }}</span>
               <span class="card-title truncate">{{ card.title }}</span>
             </div>
-            <button v-if="!store.isViewMode" class="btn-icon danger card-delete" @click.stop="store.removeCard(page.id, cat.id, card.id)">
+            <button class="btn-icon danger card-delete" @click.stop="store.removeCard(page.id, cat.id, card.id)">
               <span class="material-icons xs">close</span>
             </button>
           </div>
 
           <!-- Drop zone at the end -->
           <div
-            v-if="!store.isViewMode && cat.cards.length > 0"
+            v-if="cat.cards.length > 0"
             class="card-drop-end"
             :class="{ 'drag-over-end': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === cat.cards.length }"
             @dragover.prevent="onDragOverEnd($event, cat)"
@@ -65,7 +65,7 @@
 
           <!-- Empty state -->
           <div
-            v-if="!store.isViewMode && cat.cards.length === 0"
+            v-if="cat.cards.length === 0"
             class="cards-empty"
             @dragover.prevent="onDragOverEnd($event, cat)"
             @dragleave="onDragLeave"
@@ -78,7 +78,7 @@
       </div>
     </div>
 
-    <button v-if="!store.isViewMode" class="btn btn-primary" @click="store.addCategory(page.id)" style="margin-top:12px;">
+    <button class="btn btn-primary" @click="store.addCategory(page.id)" style="margin-top:12px;">
       <span class="material-icons xs">add</span> カテゴリを追加
     </button>
 
@@ -138,10 +138,6 @@ export default {
     const dragOverInfo = ref(null)  // { catId, idx, side }
 
     function openCardEditor(card) {
-      if (store.isViewMode) {
-        if (card.link) window.open(card.link, '_blank')
-        return
-      }
       // Only open if not just finished dragging
       if (!dragInfo.value) {
         editingCard.value = card

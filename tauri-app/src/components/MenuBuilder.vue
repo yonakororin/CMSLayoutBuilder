@@ -16,7 +16,7 @@
         <div v-for="menu in page.menus" :key="menu.id" class="menu-group">
           <div class="menu-item" :class="{ active: isMenuActive(menu) }" @click="selectMenu(menu)">
             <InlineEdit v-model="menu.name" fontWeight="500" />
-            <div v-if="!store.isViewMode" class="flex gap-1" @click.stop>
+            <div class="flex gap-1" @click.stop>
               <button class="btn-icon" @click.stop="addSubmenu(menu)" title="サブメニュー追加">
                 <span class="material-icons xs">add</span>
               </button>
@@ -35,14 +35,14 @@
               @click="selectSubmenu(sub)"
             >
               <InlineEdit v-model="sub.name" />
-              <button v-if="!store.isViewMode" class="btn-icon danger" @click.stop="store.removeSubmenu(page.id, menu.id, sub.id)">
+              <button class="btn-icon danger" @click.stop="store.removeSubmenu(page.id, menu.id, sub.id)">
                 <span class="material-icons xs">close</span>
               </button>
             </div>
           </template>
         </div>
 
-        <button v-if="!store.isViewMode" class="btn btn-primary" style="margin-top:8px;" @click="store.addMenu(page.id)">
+        <button class="btn btn-primary" style="margin-top:8px;" @click="store.addMenu(page.id)">
           <span class="material-icons xs">add</span> メニュー追加
         </button>
       </div>
@@ -51,7 +51,7 @@
       <div class="menu-content">
         <template v-if="activeTarget">
           <!-- Tabs -->
-          <div class="tab-bar">
+          <div v-if="activeTarget.useTabs || activeTarget.tabs.length > 1" class="tab-bar">
             <div
               v-for="(tab, idx) in activeTarget.tabs"
               :key="tab.id"
@@ -60,17 +60,17 @@
               @click="activeTabId = tab.id"
             >
               <InlineEdit v-model="tab.name" fontSize="12px" />
-              <button v-if="!store.isViewMode && activeTarget.tabs.length > 1" class="btn-icon danger" @click.stop="removeTab(tab.id)" style="padding:0">
+              <button class="btn-icon danger" @click.stop="removeTab(tab.id)" style="padding:0">
                 <span class="material-icons xs">close</span>
               </button>
             </div>
-            <button v-if="!store.isViewMode" class="btn-icon" @click="addTab">
+            <button class="btn-icon" @click="addTab">
               <span class="material-icons sm">add</span>
             </button>
           </div>
 
           <!-- Toolbox -->
-          <div v-if="!store.isViewMode" class="toolbox">
+          <div class="toolbox" style="display:flex; flex-wrap:wrap; align-items:center;">
             <button
               v-for="ct in componentTypes"
               :key="ct.type"
@@ -78,6 +78,9 @@
               @click="addComponent(ct.type)"
             >
               {{ ct.label }}
+            </button>
+            <button v-if="!activeTarget.useTabs && activeTarget.tabs.length <= 1" class="btn btn-ghost" @click="activeTarget.useTabs = true" style="margin-left: auto; color: var(--text-muted);">
+              <span class="material-icons sm">tab</span> タブ表示を追加
             </button>
           </div>
 
@@ -170,9 +173,16 @@ export default {
 
     function removeTab(tabId) {
       if (activeTarget.value) {
-        store.removeTab(activeTarget.value, tabId)
-        if (activeTabId.value === tabId) {
-          activeTabId.value = activeTarget.value.tabs?.[0]?.id || null
+        if (activeTarget.value.tabs.length <= 1) {
+          // If it's the last tab, reset it and disable tab mode
+          activeTarget.value.useTabs = false
+          activeTarget.value.tabs[0].name = 'タブ1'
+          activeTarget.value.tabs[0].components = []
+        } else {
+          store.removeTab(activeTarget.value, tabId)
+          if (activeTabId.value === tabId) {
+            activeTabId.value = activeTarget.value.tabs?.[0]?.id || null
+          }
         }
       }
     }

@@ -7,10 +7,6 @@
         <h1 class="app-title">CMS Layout Builder</h1>
       </div>
       <div class="flex items-center gap-2">
-        <button class="btn btn-ghost" @click="store.isViewMode = !store.isViewMode">
-          <span class="material-icons sm">{{ store.isViewMode ? 'edit' : 'visibility' }}</span> 
-          {{ store.isViewMode ? '編集モード' : 'ビューワモード' }}
-        </button>
         <button class="btn btn-ghost" @click="showHelp = true">
           <span class="material-icons sm">help_outline</span> Help
         </button>
@@ -29,7 +25,7 @@
         <div class="sidebar-section">
           <div class="sidebar-section-header">
             <span>ポータルページ</span>
-            <button v-if="!store.isViewMode" class="btn-icon" @click="store.addPortalPage()">
+            <button class="btn-icon" @click="store.addPortalPage()">
               <span class="material-icons sm">add</span>
             </button>
           </div>
@@ -42,7 +38,7 @@
           >
             <span class="material-icons sm">web</span>
             <span class="truncate">{{ p.name }}</span>
-            <button v-if="!store.isViewMode" class="btn-icon danger" @click.stop="store.removePortalPage(p.id)" style="margin-left:auto">
+            <button class="btn-icon danger" @click.stop="store.removePortalPage(p.id)" style="margin-left:auto">
               <span class="material-icons xs">close</span>
             </button>
           </div>
@@ -51,7 +47,7 @@
         <div class="sidebar-section">
           <div class="sidebar-section-header">
             <span>メニューページ</span>
-            <button v-if="!store.isViewMode" class="btn-icon" @click="store.addMenuPage()">
+            <button class="btn-icon" @click="store.addMenuPage()">
               <span class="material-icons sm">add</span>
             </button>
           </div>
@@ -64,7 +60,7 @@
           >
             <span class="material-icons sm">menu_book</span>
             <span class="truncate">{{ m.name }}</span>
-            <button v-if="!store.isViewMode" class="btn-icon danger" @click.stop="store.removeMenuPage(m.id)" style="margin-left:auto">
+            <button class="btn-icon danger" @click.stop="store.removeMenuPage(m.id)" style="margin-left:auto">
               <span class="material-icons xs">close</span>
             </button>
           </div>
@@ -85,7 +81,7 @@
           <span class="material-icons" style="font-size:64px; color:var(--accent); opacity:0.4">dashboard_customize</span>
           <h2>CMS Layout Builder</h2>
           <p>左のサイドバーからページを選択するか、新しいページを作成してください。</p>
-          <div v-if="!store.isViewMode" class="flex gap-2" style="margin-top:16px">
+          <div class="flex gap-2" style="margin-top:16px">
             <button class="btn btn-primary" @click="store.addPortalPage()">
               <span class="material-icons sm">add</span> ポータルページ追加
             </button>

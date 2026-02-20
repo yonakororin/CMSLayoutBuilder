@@ -112,7 +112,6 @@ export const store = reactive({
     menuPages: [],
 
     // --- UI state ---
-    isViewMode: false,
     selectedPageType: null,  // 'portal' | 'menu'
     selectedPageId: null,
     selectedSubmenuId: null,  // content pane target

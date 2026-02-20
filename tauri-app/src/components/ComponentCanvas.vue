@@ -14,7 +14,6 @@
     >
       <!-- Drag handle (top bar) -->
       <div
-        v-if="!store.isViewMode"
         class="comp-drag-bar"
         @pointerdown.prevent="startDrag($event, comp)"
       >
@@ -59,7 +58,6 @@
 
       <!-- Resize handle (bottom-right) -->
       <div
-        v-if="!store.isViewMode"
         class="comp-resize-handle"
         @pointerdown.prevent.stop="startResize($event, comp)"
       >

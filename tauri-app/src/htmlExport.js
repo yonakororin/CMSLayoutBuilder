@@ -451,7 +451,21 @@ export function generateMenuHtml(page) {
 }
 
 function generateTabsHtml(targetObj, paneId) {
-  if (!targetObj.tabs) return ''
+  if (!targetObj.tabs || targetObj.tabs.length === 0) return ''
+
+  if (targetObj.tabs.length === 1) {
+    const tab = targetObj.tabs[0]
+    const contents = tab.components.map(comp => generateComponentHtml(comp)).join('')
+    return `
+      <div id="${paneId}" class="content-pane">
+        <h3>${targetObj.name}</h3>
+        <div class="tab-content active" style="border:none; height:calc(100% - 60px); background:transparent;">
+          ${contents}
+        </div>
+      </div>
+    `
+  }
+
   const tabsNav = targetObj.tabs.map((tab, idx) => `
     <div class="tab ${idx === 0 ? 'active' : ''}" data-tab="${tab.id}" onclick="showTab('${paneId}', '${tab.id}')">${tab.name}</div>
   `).join('')
