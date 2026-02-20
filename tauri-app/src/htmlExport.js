@@ -1,3 +1,60 @@
+const USER_MENU_CSS = `
+    .user-profile-menu { position: absolute; top: 24px; right: 32px; z-index: 100; }
+    #user-menu-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      padding: 8px 16px; border-radius: 20px; cursor: pointer;
+      color: var(--text-main); font-size: 0.95rem; font-weight: 600;
+      box-shadow: var(--shadow-sm); transition: all 0.2s;
+    }
+    #user-menu-btn:hover { box-shadow: var(--shadow-md); background: rgba(0,0,0,0.02); }
+    #user-menu-btn .material-icons { font-size: 20px; color: var(--text-muted); }
+    .user-dropdown-menu {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; box-shadow: var(--shadow-md);
+      width: 200px; display: none; flex-direction: column; overflow: hidden;
+    }
+    .user-dropdown-menu.show { display: flex; animation: dropIn 0.2s ease; }
+    @keyframes dropIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .user-dropdown-menu a {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; text-decoration: none;
+      color: var(--text-main); font-size: 0.9rem; font-weight: 500;
+      transition: background 0.2s;
+    }
+    .user-dropdown-menu a:hover { background: rgba(0,0,0,0.03); }
+    .user-dropdown-menu a .material-icons { color: var(--text-muted); font-size: 18px; }
+`;
+
+const USER_MENU_HTML = `
+    <div class="user-profile-menu">
+      <button id="user-menu-btn" onclick="document.getElementById('user-dropdown').classList.toggle('show')">
+        <span class="material-icons">account_circle</span>
+        <span id="user-name-display">ユーザー名</span>
+        <span class="material-icons" style="font-size: 16px; margin-left: -4px;">arrow_drop_down</span>
+      </button>
+      <div id="user-dropdown" class="user-dropdown-menu">
+        <a href="#" id="user-action-password" onclick="event.preventDefault(); console.log('Click: Password Change');">
+          <span class="material-icons">vpn_key</span> パスワード変更
+        </a>
+        <a href="#" id="user-action-logout" onclick="event.preventDefault(); console.log('Click: Logout');">
+          <span class="material-icons">logout</span> ログアウト
+        </a>
+      </div>
+    </div>
+`;
+
+const USER_MENU_SCRIPT = `
+    document.addEventListener('click', function(e) {
+      const btn = document.getElementById('user-menu-btn');
+      const dropdown = document.getElementById('user-dropdown');
+      if (btn && dropdown && !btn.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+`;
+
 export function generatePortalHtml(page) {
   let categoriesHtml = page.categories.map(cat => `
     <div class="category" style="--category-theme: ${cat.themeColor || '#4f46e5'};">
@@ -92,10 +149,15 @@ export function generatePortalHtml(page) {
       font-weight: 400;
       src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
     }
-    .icon { font-family: 'Material Icons'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+    .icon, .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+    ${USER_MENU_CSS}
   </style>
+  <script>
+    ${USER_MENU_SCRIPT}
+  </script>
 </head>
 <body>
+  ${USER_MENU_HTML}
   <div class="container">
     <h1>${page.name}</h1>
     ${categoriesHtml}
@@ -315,8 +377,11 @@ export function generateMenuHtml(page) {
       src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
     }
     .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+    ${USER_MENU_CSS}
   </style>
   <script>
+    ${USER_MENU_SCRIPT}
+    
     function toggleSidebar() {
       document.querySelector('.sidebar').classList.toggle('closed');
     }
@@ -374,6 +439,7 @@ export function generateMenuHtml(page) {
     </div>
   </div>
   <div class="main">
+    ${USER_MENU_HTML}
     ${contentsHtml}
     <div id="welcome" class="content-pane active">
       <h2>メニューを選択してください</h2>

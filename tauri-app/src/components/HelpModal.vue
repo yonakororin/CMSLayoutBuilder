@@ -41,17 +41,26 @@
 
           <div class="help-card">
             <h4><span class="material-icons sm">save</span> 保存と読み込み</h4>
-            <table class="help-table">
+            <p>SaveまたはLoadボタンを押すと<b>フォルダ選択ダイアログ</b>が開きます。データを保存・読み込みたい「プロジェクトのルートフォルダ」を選択してください。</p>
+            <table class="help-table" style="margin-top: 8px;">
               <tr>
                 <td class="key-cell"><kbd>Save</kbd> ボタン</td>
-                <td>現在の編集内容をプロジェクトフォルダに JSON ファイルとして保存します</td>
+                <td>現在の編集状態（JSON）と、各ページのエクスポートされたHTMLを指定フォルダに保存します。</td>
               </tr>
               <tr>
                 <td class="key-cell"><kbd>Load</kbd> ボタン</td>
-                <td>プロジェクトフォルダから保存済みデータを読み込みます</td>
+                <td>指定フォルダ内にある <code>cms_project.json</code> を読み込み、編集状態を復元します。</td>
               </tr>
             </table>
-            <p class="help-note">※ フォルダ内に <code>cms_project.json</code> が作成されます。</p>
+            <div class="help-note" style="margin-top: 12px; font-family: monospace; font-size: 11px; white-space: pre;">【保存されるフォルダ構成】
+📂 選択したフォルダ
+ ┣ 📄 cms_project.json (設定データ)
+ ┣ 📂 ポータルページ
+ ┃ ┗ 📂 (ページ名)
+ ┃    ┗ 📄 index.html
+ ┗ 📂 メニューページ
+    ┗ 📂 (ページ名)
+       ┗ 📄 index.html</div>
           </div>
 
           <div class="help-card">
