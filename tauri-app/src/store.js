@@ -288,6 +288,8 @@ export const store = reactive({
                 y: 10,
                 w: isTable ? 400 : (isButton ? 120 : 180),
                 h: isTable ? 240 : (isButton ? 36 : 56),
+                customId: '',
+                customClass: '',
                 ...(options ? { options, defaultValue } : {}),
                 ...(label ? { label } : {}),
                 ...(htmlContent !== undefined ? { htmlContent } : {})

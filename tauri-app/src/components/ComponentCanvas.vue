@@ -91,11 +91,8 @@
 
     <!-- Context Menu -->
     <div v-if="contextMenu.show" class="context-menu" :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }">
-      <div class="context-menu-item" v-if="contextMenu.comp && contextMenu.comp.options !== undefined" @click="handleContextMenuOption('editOptions')">
-        <span class="material-icons xs">settings</span> 選択肢を編集
-      </div>
-      <div class="context-menu-item" v-if="contextMenu.comp && contextMenu.comp.type === 'HTML表示領域'" @click="handleContextMenuOption('editHtml')">
-        <span class="material-icons xs">code</span> HTML編集
+      <div class="context-menu-item" v-if="contextMenu.comp && contextMenu.comp.type !== 'HTML表示領域'" @click="handleContextMenuOption('editSettings')">
+        <span class="material-icons xs">settings</span> 設定 (ID/Class等)
       </div>
       <div class="context-menu-item text-danger" @click="handleContextMenuOption('delete')">
         <span class="material-icons xs">delete</span> 削除する
@@ -120,6 +117,40 @@
         <div class="modal-actions" style="margin-top: 8px;">
           <button class="btn btn-ghost" @click="closeHtmlEditor">キャンセル</button>
           <button class="btn btn-primary" @click="saveHtmlEditor">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Component Settings Modal -->
+    <div v-if="settingsEditor.show" class="modal-overlay" @mousedown.prevent.stop="closeSettingsEditor">
+      <div class="modal-content flex flex-col gap-3" style="width: 400px; max-width: 90vw; pointer-events: auto;" @mousedown.stop>
+        <h3 style="margin:0 0 8px 0;">コンポーネント設定</h3>
+        
+        <div class="flex flex-col gap-1">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">ID (任意)</label>
+          <input type="text" v-model="settingsEditor.tempId" placeholder="例: my-button" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+        </div>
+        
+        <div class="flex flex-col gap-1">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">追加クラス (半角スペース区切り・任意)</label>
+          <input type="text" v-model="settingsEditor.tempClass" placeholder="例: btn-primary mb-4" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+        </div>
+
+        <template v-if="settingsEditor.hasOptions">
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;" />
+          <div class="flex flex-col gap-1">
+            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">選択肢 (カンマ区切り)</label>
+            <input type="text" v-model="settingsEditor.tempOptions" placeholder="例: 選択肢1,選択肢2" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">デフォルト選択値 (空でも可)</label>
+            <input type="text" v-model="settingsEditor.tempDefault" placeholder="例: 選択肢1" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+          </div>
+        </template>
+
+        <div class="modal-actions" style="margin-top: 8px; justify-content: flex-end; display: flex; gap: 8px;">
+          <button class="btn btn-ghost" @click="closeSettingsEditor">キャンセル</button>
+          <button class="btn btn-primary" @click="saveSettingsEditor">保存</button>
         </div>
       </div>
     </div>
@@ -158,6 +189,10 @@ export default {
     const htmlEditor = ref({ show: false, content: '', comp: null, keybinding: 'normal' })
     const aceContainerRef = ref(null)
     const aceEditorInstance = shallowRef(null)
+    const settingsEditor = ref({ 
+      show: false, comp: null, tempId: '', tempClass: '', 
+      tempOptions: '', tempDefault: '', hasOptions: false 
+    })
 
     // Drag state
     let dragState = null
@@ -194,8 +229,8 @@ export default {
       const comp = contextMenu.value.comp
       if (!comp) return
       
-      if (action === 'editOptions') {
-        editOptions(comp)
+      if (action === 'editSettings') {
+        openSettingsEditor(comp)
       } else if (action === 'editHtml') {
         openHtmlEditor(comp)
       } else if (action === 'delete') {
@@ -253,8 +288,7 @@ export default {
       }
     }
 
-    function closeHtmlEditor(e) {
-      if (e && e.target && e.target.closest('.modal-content')) return;
+    function closeHtmlEditor() {
       htmlEditor.value.show = false
     }
 
@@ -299,21 +333,40 @@ export default {
       resizeState = null
     }
 
-    function editOptions(comp) {
-      if (!comp || comp.options === undefined) return;
-      const currentOpts = comp.options.join(',');
-      const newOpts = prompt('選択肢をカンマ区切りで入力してください (例: 選択肢1,選択肢2):', currentOpts);
-      if (newOpts !== null) {
-        let optsArray = newOpts.split(',').map(s => s.trim()).filter(s => s);
-        if (optsArray.length === 0) optsArray = ['選択肢1']; // fallback
-        comp.options = optsArray;
+    function openSettingsEditor(comp) {
+      if (!comp) return;
+      settingsEditor.value.comp = comp;
+      settingsEditor.value.tempId = comp.customId || '';
+      settingsEditor.value.tempClass = comp.customClass || '';
+      
+      const hasOptions = comp.options !== undefined;
+      settingsEditor.value.hasOptions = hasOptions;
+      if (hasOptions) {
+        settingsEditor.value.tempOptions = (comp.options || []).join(', ');
+        settingsEditor.value.tempDefault = comp.defaultValue || '';
+      }
+      
+      settingsEditor.value.show = true;
+    }
+
+    function closeSettingsEditor() {
+      settingsEditor.value.show = false;
+    }
+
+    function saveSettingsEditor() {
+      const comp = settingsEditor.value.comp;
+      if (comp) {
+        comp.customId = settingsEditor.value.tempId.trim();
+        comp.customClass = settingsEditor.value.tempClass.trim();
         
-        const currentDef = comp.defaultValue;
-        const newDef = prompt('デフォルト(初期状態)で選択しておく値を入力してください。(空でも可):', currentDef || '');
-        if (newDef !== null) {
-          comp.defaultValue = newDef.trim();
+        if (settingsEditor.value.hasOptions) {
+          let optsArray = settingsEditor.value.tempOptions.split(',').map(s => s.trim()).filter(s => s);
+          if (optsArray.length === 0) optsArray = ['選択肢1']; // fallback
+          comp.options = optsArray;
+          comp.defaultValue = settingsEditor.value.tempDefault.trim();
         }
       }
+      closeSettingsEditor();
     }
 
     onMounted(() => {
@@ -334,6 +387,7 @@ export default {
       canvasRef, handlePointerDown, startResize, 
       contextMenu, showContextMenu, handleContextMenuOption,
       htmlEditor, closeHtmlEditor, saveHtmlEditor, aceContainerRef, updateKeybinding,
+      settingsEditor, openSettingsEditor, closeSettingsEditor, saveSettingsEditor,
       store 
     }
   },

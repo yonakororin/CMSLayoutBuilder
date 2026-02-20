@@ -569,5 +569,8 @@ function generateComponentHtml(comp) {
     inner = comp.type
   }
 
-  return `<div class="${cls}" style="${style}">${inner}</div>`
+  const idAttr = comp.customId ? ` id="${comp.customId}"` : ''
+  const additionalClass = comp.customClass ? ` ${comp.customClass}` : ''
+
+  return `<div${idAttr} class="${cls}${additionalClass}" style="${style}">${inner}</div>`
 }
