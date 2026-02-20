@@ -276,6 +276,11 @@ export const store = reactive({
                 label = 'ボタン';
             }
 
+            let htmlContent = undefined;
+            if (ctype === 'HTML表示領域') {
+                htmlContent = '<p style="color:var(--text-muted); text-align:center;">右クリックでHTMLを編集</p>';
+            }
+
             tab.components.push({
                 id: generateId(),
                 type: ctype,
@@ -284,7 +289,8 @@ export const store = reactive({
                 w: isTable ? 400 : (isButton ? 120 : 180),
                 h: isTable ? 240 : (isButton ? 36 : 56),
                 ...(options ? { options, defaultValue } : {}),
-                ...(label ? { label } : {})
+                ...(label ? { label } : {}),
+                ...(htmlContent !== undefined ? { htmlContent } : {})
             })
         }
     },

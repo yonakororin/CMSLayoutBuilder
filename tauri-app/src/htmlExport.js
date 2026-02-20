@@ -350,7 +350,7 @@ export function generateMenuHtml(page) {
     }
     .component:hover { box-shadow: var(--shadow-md); border-color: #cbd5e1; }
     
-    .c-html { background: transparent; border: none; box-shadow: none; color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+    .c-html { display: block; overflow: auto; background: transparent; border: none; box-shadow: none; color: var(--text-main); margin: 0; padding: 0; }
     .c-input { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
     .c-input label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0px; }
     .c-input input, .c-input select { 
@@ -511,7 +511,7 @@ function generateComponentHtml(comp) {
   let inner = ''
   let cls = 'component'
   if (comp.type === 'HTML表示領域') {
-    inner = 'HTML表示領域'
+    inner = comp.htmlContent || '<p style="color:var(--text-muted); text-align:center;">右クリックでHTMLを編集</p>'
     cls += ' c-html'
   } else if (comp.type === 'インプット(ラベル付き)') {
     inner = `<label>${comp.label || 'ラベル'}</label><input type="text" placeholder="テキスト入力" />`
