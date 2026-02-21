@@ -455,6 +455,7 @@ export function generateMenuHtml(page) {
     .main { 
       flex: 1; padding: 24px; overflow-y: auto; position: relative;
       background-image: radial-gradient(circle at center, #ffffff 0%, transparent 100%);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     .content-pane { 
@@ -492,7 +493,8 @@ export function generateMenuHtml(page) {
       position: absolute; border: 1px solid var(--border); background: var(--bg-card); 
       padding: 4px; box-sizing: border-box; box-shadow: var(--shadow-sm); 
       border-radius: 6px; display: flex; align-items: center; justify-content: center;
-      transition: box-shadow 0.2s;
+      transition: all 0.2s, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      max-width: calc(100% - 48px);
     }
     .component:hover { box-shadow: var(--shadow-md); border-color: #cbd5e1; }
     
@@ -660,7 +662,11 @@ function generateTabsHtml(targetObj, paneId) {
 
 function generateComponentHtml(comp, idx) {
   const zIndex = idx !== undefined ? ` z-index: ${idx + 1};` : ''
-  const style = `left: ${comp.x}px; top: ${comp.y}px; width: ${comp.w}px; height: ${comp.h}px;${zIndex}`
+  let widthStyle = `${comp.w}px`
+  if (comp.type === 'テーブル(ページネーション付)' || (comp.w > 600)) {
+    widthStyle = 'calc(100% - 48px)'
+  }
+  const style = `left: ${comp.x}px; top: ${comp.y}px; width: ${widthStyle}; height: ${comp.h}px;${zIndex}`
   let inner = ''
   let cls = 'component'
   let outerIdAttr = comp.customId ? ` id="${comp.customId}"` : ''
