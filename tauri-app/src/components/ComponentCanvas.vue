@@ -20,7 +20,7 @@
         <!-- HTML表示領域 -->
         <div v-if="comp.type === 'HTML表示領域'" class="placeholder-html-preview">
           <iframe 
-            :srcdoc="comp.htmlContent || '<div style=\\\'color:var(--text-muted); text-align:center; font-family:sans-serif; padding-top:10px;\\\'>右クリックでHTMLを編集</div>'" 
+            :srcdoc="getIframeSrcdoc(comp)" 
             style="pointer-events: none; width: 100%; height: 100%; border: none; overflow: hidden; background: transparent;">
           </iframe>
         </div>
@@ -263,14 +263,26 @@ export default {
             
             // Add custom script snippet
             const snippetManager = ace.require("ace/snippets").snippetManager;
-            const customSnippets = [
+            const customHtmlSnippets = [
               {
                 content: "<script type=\"text/javascript\">\n\t$1\n<\\/script>",
                 name: "script",
                 tabTrigger: "script"
               }
             ];
-            snippetManager.register(customSnippets, "html");
+            snippetManager.register(customHtmlSnippets, "html");
+
+            // Add UI Helper snippets
+            const customJsSnippets = [
+              { content: "window.UI.showLoading(\"${1:ロード中...}\");", name: "UI.showLoading", tabTrigger: "showLoading" },
+              { content: "window.UI.hideLoading();", name: "UI.hideLoading", tabTrigger: "hideLoading" },
+              { content: "window.UI.showProgress(${1:50}, \"${2:処理中...}\");", name: "UI.showProgress", tabTrigger: "showProgress" },
+              { content: "window.UI.hideProgress();", name: "UI.hideProgress", tabTrigger: "hideProgress" },
+              { content: "window.UI.showModal(\n\t\"${1:確認}\",\n\t\"${2:<p>実行してもよろしいですか？</p>}\",\n\t() => {\n\t\t${3:// OK}\n\t},\n\t() => {\n\t\t${4:// Cancel}\n\t}\n);", name: "UI.showModal", tabTrigger: "showModal" },
+              { content: "window.UI.hideModal();", name: "UI.hideModal", tabTrigger: "hideModal" }
+            ];
+            snippetManager.register(customJsSnippets, "javascript");
+            snippetManager.register(customJsSnippets, "html");
             
           } else {
             aceEditorInstance.value.setValue(htmlEditor.value.content, -1)
@@ -303,6 +315,9 @@ export default {
         htmlEditor.value.comp.htmlContent = htmlEditor.value.content
       }
       closeHtmlEditor()
+      if (store.triggerSave) {
+        store.triggerSave()
+      }
     }
 
     function startResize(e, comp) {
@@ -372,6 +387,30 @@ export default {
       closeSettingsEditor();
     }
 
+    function getIframeSrcdoc(comp) {
+      const rawContent = comp.htmlContent || '<div style="color:#94a3b8; text-align:center; font-family:sans-serif; padding-top:10px;">右クリックでHTMLを編集</div>';
+      // Wrap content in a styled body so text defaults to a readable color on dark background
+      return `
+        <html>
+          <head>
+            <style>
+              body {
+                color: #e2e8f0; /* Default light color for dark background */
+                font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+                margin: 0;
+                padding: 4px;
+                box-sizing: border-box;
+                overflow: hidden;
+              }
+            </style>
+          </head>
+          <body>
+            ${rawContent}
+          </body>
+        </html>
+      `;
+    }
+
     onMounted(() => {
       window.addEventListener('pointermove', onPointerMove)
       window.addEventListener('pointerup', onPointerUp)
@@ -391,6 +430,7 @@ export default {
       contextMenu, showContextMenu, handleContextMenuOption,
       htmlEditor, closeHtmlEditor, saveHtmlEditor, aceContainerRef, updateKeybinding,
       settingsEditor, openSettingsEditor, closeSettingsEditor, saveSettingsEditor,
+      getIframeSrcdoc,
       store 
     }
   },

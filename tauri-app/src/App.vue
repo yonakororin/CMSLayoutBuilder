@@ -136,7 +136,16 @@ export default {
       try {
         // Use File System Access API if available, otherwise download
         if (window.showDirectoryPicker) {
-          const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
+          if (!store.dirHandle) {
+            store.dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
+          } else {
+            const permission = await store.dirHandle.requestPermission({ mode: 'readwrite' })
+            if (permission !== 'granted') {
+              store.dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
+            }
+          }
+          const dirHandle = store.dirHandle;
+
           const fileHandle = await dirHandle.getFileHandle('cms_project.json', { create: true })
           const writable = await fileHandle.createWritable()
           await writable.write(store.toJSON())
@@ -194,6 +203,7 @@ export default {
       try {
         if (window.showDirectoryPicker) {
           const dirHandle = await window.showDirectoryPicker()
+          store.dirHandle = dirHandle;
           const fileHandle = await dirHandle.getFileHandle('cms_project.json')
           const file = await fileHandle.getFile()
           const text = await file.text()
@@ -226,6 +236,8 @@ export default {
         }
       }
     }
+
+    store.triggerSave = saveProject;
 
     return {
       store,
