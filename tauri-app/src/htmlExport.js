@@ -71,6 +71,17 @@ const GLB_UI_CSS = `
     .glb-btn-cancel:hover { background: #cbd5e1; }
     .glb-btn-primary { background: var(--primary, #4f46e5); color: #fff; }
     .glb-btn-primary:hover { filter: brightness(1.1); }
+    .glb-btn-info { background: #3b82f6; color: #fff; }
+    .glb-btn-info:hover { background: #2563eb; }
+    .glb-btn-warning { background: #f59e0b; color: #fff; }
+    .glb-btn-warning:hover { background: #d97706; }
+    .glb-btn-danger { background: #ef4444; color: #fff; }
+    .glb-btn-danger:hover { background: #dc2626; }
+    .glb-btn-none { background: transparent; color: #64748b; border: 1px solid transparent; }
+    .glb-btn-none:hover { background: #f1f5f9; color: #334155; }
+    
+    .glb-input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; margin-top: 12px; box-sizing: border-box; font-family: inherit; }
+    .glb-input:focus { outline: none; border-color: var(--primary, #4f46e5); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
 
     .glb-loader { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff; font-weight: 500; }
     .glb-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: glb-spin 1s linear infinite; }
@@ -115,21 +126,75 @@ const GLB_UI_SCRIPT = `
         const el = document.getElementById('glb-progress-overlay');
         if (el) el.classList.remove('show');
       },
-      showModal(title, contentHtml, onConfirm, onCancel) {
-        const el = this.createOverlay('glb-modal-overlay', '<div class="glb-modal"><div class="glb-modal-header" id="glb-modal-header"></div><div class="glb-modal-body" id="glb-modal-body"></div><div class="glb-modal-footer"><button class="glb-btn glb-btn-cancel" id="glb-modal-cancel">キャンセル</button><button class="glb-btn glb-btn-primary" id="glb-modal-confirm">OK</button></div></div>');
+      showModal(optOrTitle, contHtml, onConfirm, onCancel, btnConfirm = "OK", btnCancel = "キャンセル") {
+        let options = optOrTitle;
+        if (typeof optOrTitle === 'string') {
+          options = {
+            title: optOrTitle,
+            contentHtml: contHtml || '',
+            buttons: [
+              { label: btnCancel, style: 'None', onClick: onCancel },
+              { label: btnConfirm, style: 'Primary', onClick: onConfirm }
+            ]
+          };
+        }
+        const { title = '', contentHtml = '', buttons = [] } = options || {};
+        const el = this.createOverlay('glb-modal-overlay', '<div class="glb-modal"><div class="glb-modal-header" id="glb-modal-header"></div><div class="glb-modal-body" id="glb-modal-body"></div><div class="glb-modal-footer" id="glb-modal-footer"></div></div>');
         document.getElementById('glb-modal-header').innerText = title;
         document.getElementById('glb-modal-body').innerHTML = contentHtml;
-        const cancelBtn = document.getElementById('glb-modal-cancel');
-        const confirmBtn = document.getElementById('glb-modal-confirm');
-        const onClickCancel = () => { if(onCancel) onCancel(); this.hideModal(); };
-        const onClickConfirm = () => { if(onConfirm) onConfirm(); this.hideModal(); };
-        cancelBtn.onclick = onClickCancel;
-        confirmBtn.onclick = onClickConfirm;
+        const footer = document.getElementById('glb-modal-footer');
+        footer.innerHTML = '';
+        
+        buttons.forEach((btnInfo, idx) => {
+          const btn = document.createElement('button');
+          const style = (btnInfo.style || 'Primary').toLowerCase();
+          btn.className = 'glb-btn glb-btn-' + (style === 'none' ? 'none' : (['primary', 'info', 'warning', 'danger'].includes(style) ? style : 'cancel'));
+          btn.innerText = btnInfo.label || 'Button';
+          btn.onclick = () => {
+             if (btnInfo.onClick) btnInfo.onClick();
+             this.hideModal();
+          };
+          footer.appendChild(btn);
+        });
+        
         void el.offsetWidth; el.classList.add('show');
       },
       hideModal() {
         const el = document.getElementById('glb-modal-overlay');
         if (el) el.classList.remove('show');
+      },
+      showPrompt(optOrTitle, descHtml, defValue, onConfirm, onCancel, btnConfirm = "決定", btnCancel = "キャンセル") {
+        let options = optOrTitle;
+        if (typeof optOrTitle === 'string') {
+          options = {
+            title: optOrTitle,
+            descriptionHtml: descHtml || '',
+            defaultValue: defValue || '',
+            buttons: [
+              { label: btnCancel, style: 'None', onClick: onCancel },
+              { label: btnConfirm, style: 'Info', onClick: (val) => { if(onConfirm) onConfirm(val); } }
+            ]
+          };
+        }
+        const { title = '値の入力', descriptionHtml = '', defaultValue = '', buttons = [] } = options || {};
+        const bodyHtml = (descriptionHtml ? descriptionHtml : '') + '<input type="text" id="glb-prompt-input" class="glb-input" value="' + (defaultValue || '').replace(/"/g, '&quot;') + '" />';
+        
+        const mappedButtons = buttons.map(btnInfo => {
+           return {
+              label: btnInfo.label,
+              style: btnInfo.style,
+              onClick: () => {
+                 const val = document.getElementById('glb-prompt-input').value;
+                 if (btnInfo.onClick) btnInfo.onClick(val);
+              }
+           };
+        });
+        
+        this.showModal({ title, contentHtml: bodyHtml, buttons: mappedButtons });
+        setTimeout(() => {
+          const input = document.getElementById('glb-prompt-input');
+          if (input) input.focus();
+        }, 100);
       }
     };
 `;
@@ -518,7 +583,10 @@ export function generateMenuHtml(page) {
     function showContent(id) {
       document.querySelectorAll('.content-pane').forEach(el => el.classList.remove('active'));
       const target = document.getElementById(id);
-      if (target) target.classList.add('active');
+      if (target) {
+        target.classList.add('active');
+        window.dispatchEvent(new CustomEvent('glbContentShown', { detail: { id: id } }));
+      }
     }
     function showTab(paneId, tabId) {
       const pane = document.getElementById(paneId);
@@ -527,6 +595,7 @@ export function generateMenuHtml(page) {
       pane.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       pane.querySelector('[data-tab="' + tabId + '"]').classList.add('active');
       pane.querySelector('.tab-content-' + tabId).classList.add('active');
+      window.dispatchEvent(new CustomEvent('glbTabShown', { detail: { paneId: paneId, tabId: tabId } }));
     }
   </script>
 </head>
@@ -559,7 +628,7 @@ function generateTabsHtml(targetObj, paneId) {
 
   if (targetObj.tabs.length === 1) {
     const tab = targetObj.tabs[0]
-    const contents = tab.components.map(comp => generateComponentHtml(comp)).join('')
+    const contents = tab.components.map((comp, idx) => generateComponentHtml(comp, idx)).join('')
     return `
       <div id="${paneId}" class="content-pane">
         <h3>${targetObj.name}</h3>
@@ -576,7 +645,7 @@ function generateTabsHtml(targetObj, paneId) {
 
   const tabsContent = targetObj.tabs.map((tab, idx) => `
     <div class="tab-content tab-content-${tab.id} ${idx === 0 ? 'active' : ''}">
-      ${tab.components.map(comp => generateComponentHtml(comp)).join('')}
+      ${tab.components.map((comp, idx) => generateComponentHtml(comp, idx)).join('')}
     </div>
   `).join('')
 
@@ -589,23 +658,32 @@ function generateTabsHtml(targetObj, paneId) {
   `
 }
 
-function generateComponentHtml(comp) {
-  const style = `left: ${comp.x}px; top: ${comp.y}px; width: ${comp.w}px; height: ${comp.h}px;`
+function generateComponentHtml(comp, idx) {
+  const zIndex = idx !== undefined ? ` z-index: ${idx + 1};` : ''
+  const style = `left: ${comp.x}px; top: ${comp.y}px; width: ${comp.w}px; height: ${comp.h}px;${zIndex}`
   let inner = ''
   let cls = 'component'
+  let outerIdAttr = comp.customId ? ` id="${comp.customId}"` : ''
+
   if (comp.type === 'HTML表示領域') {
     inner = comp.htmlContent || '<p style="color:var(--text-muted); text-align:center;">右クリックでHTMLを編集</p>'
     cls += ' c-html'
   } else if (comp.type === 'インプット(ラベル付き)') {
-    inner = `<label>${comp.label || 'ラベル'}</label><input type="text" placeholder="テキスト入力" />`
+    const inputId = comp.customId ? ` id="${comp.customId}"` : ''
+    outerIdAttr = '' // Remove ID from the wrapper
+    inner = `<label${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || 'ラベル'}</label><input type="text"${inputId} placeholder="テキスト入力" />`
     cls += ' c-input'
   } else if (comp.type === 'カレンダー(ラベル付き)') {
-    inner = `<label>${comp.label || '日付'}</label><input type="date" />`
+    const inputId = comp.customId ? ` id="${comp.customId}"` : ''
+    outerIdAttr = '' // Remove ID from the wrapper
+    inner = `<label${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || '日付'}</label><input type="date"${inputId} />`
     cls += ' c-input'
   } else if (comp.type === 'セレクトボックス(ラベル付き)') {
+    const inputId = comp.customId ? ` id="${comp.customId}"` : ''
+    outerIdAttr = '' // Remove ID from the wrapper
     const opts = comp.options || ['-- 選択 --'];
     const optsHtml = opts.map(o => `<option ${o === comp.defaultValue ? 'selected' : ''}>${o}</option>`).join('');
-    inner = `<label>${comp.label || '選択'}</label><select>${optsHtml}</select>`
+    inner = `<label${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || '選択'}</label><select${inputId}>${optsHtml}</select>`
     cls += ' c-input'
   } else if (comp.type === 'ラジオボタン(ラベル付き)') {
     const opts = comp.options || ['ラジオ'];
@@ -614,7 +692,6 @@ function generateComponentHtml(comp) {
     cls += ' c-radio-check'
   } else if (comp.type === 'チェックボックス(ラベル付き)') {
     const opts = comp.options || ['チェック'];
-    // For checkboxes, defaultValue can be an exact match check. If they want multiple, this simple logic just matches the string.
     const optsHtml = opts.map(o => `<label><input type="checkbox" name="${comp.id}[]" ${o === comp.defaultValue ? 'checked' : ''} /> ${o}</label>`).join('');
     inner = `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 2px;">${comp.label || 'チェック選択'}</label>` + optsHtml;
     cls += ' c-radio-check'
@@ -646,14 +723,17 @@ function generateComponentHtml(comp) {
     `
     cls += ' c-table'
   } else if (comp.type === 'ボタン') {
-    inner = `<button type="button">${comp.label || 'ボタン'}</button>`
+    const btnId = comp.customId ? ` id="${comp.customId}"` : ''
+    outerIdAttr = '' // Remove ID from the wrapper
+    const btnOnClick = comp.customOnClick ? ` onclick="${comp.customOnClick.replace(/"/g, '&quot;')}"` : ''
+    inner = `<button type="button"${btnId}${btnOnClick}>${comp.label || 'ボタン'}</button>`
     cls += ' c-button'
   } else {
     inner = comp.type
   }
 
-  const idAttr = comp.customId ? ` id="${comp.customId}"` : ''
   const additionalClass = comp.customClass ? ` ${comp.customClass}` : ''
+  const outerOnClick = (comp.type !== 'ボタン' && comp.customOnClick) ? ` onclick="${comp.customOnClick.replace(/"/g, '&quot;')}"` : ''
 
-  return `<div${idAttr} class="${cls}${additionalClass}" style="${style}">${inner}</div>`
+  return `<div${outerIdAttr}${outerOnClick} class="${cls}${additionalClass}" style="${style}">${inner}</div>`
 }

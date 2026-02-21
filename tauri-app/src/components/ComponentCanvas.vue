@@ -2,7 +2,7 @@
   <div class="component-canvas" ref="canvasRef">
     <!-- Components on the canvas -->
     <div
-      v-for="comp in components"
+      v-for="(comp, idx) in components"
       :key="comp.id"
       class="canvas-component"
       :style="{
@@ -10,6 +10,7 @@
         top: comp.y + 'px',
         width: comp.w + 'px',
         height: comp.h + 'px',
+        zIndex: idx + 1
       }"
       @pointerdown="handlePointerDown($event, comp)"
       @contextmenu.prevent.stop="showContextMenu($event, comp)"
@@ -139,6 +140,11 @@
           <input type="text" v-model="settingsEditor.tempClass" placeholder="例: btn-primary mb-4" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
         </div>
 
+        <div class="flex flex-col gap-1">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">カスタムアクション (onclick・任意)</label>
+          <input type="text" v-model="settingsEditor.tempOnClick" placeholder="例: window.UI.showModal('メッセージ')" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+        </div>
+
         <template v-if="settingsEditor.hasOptions">
           <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;" />
           <div class="flex flex-col gap-1">
@@ -193,7 +199,7 @@ export default {
     const aceContainerRef = ref(null)
     const aceEditorInstance = shallowRef(null)
     const settingsEditor = ref({ 
-      show: false, comp: null, tempId: '', tempClass: '', 
+      show: false, comp: null, tempId: '', tempClass: '', tempOnClick: '', 
       tempOptions: '', tempDefault: '', hasOptions: false 
     })
 
@@ -278,8 +284,9 @@ export default {
               { content: "window.UI.hideLoading();", name: "UI.hideLoading", tabTrigger: "hideLoading" },
               { content: "window.UI.showProgress(${1:50}, \"${2:処理中...}\");", name: "UI.showProgress", tabTrigger: "showProgress" },
               { content: "window.UI.hideProgress();", name: "UI.hideProgress", tabTrigger: "hideProgress" },
-              { content: "window.UI.showModal(\n\t\"${1:確認}\",\n\t\"${2:<p>実行してもよろしいですか？</p>}\",\n\t() => {\n\t\t${3:// OK}\n\t},\n\t() => {\n\t\t${4:// Cancel}\n\t}\n);", name: "UI.showModal", tabTrigger: "showModal" },
-              { content: "window.UI.hideModal();", name: "UI.hideModal", tabTrigger: "hideModal" }
+              { content: "window.UI.showModal({\n\ttitle: \"${1:確認}\",\n\tcontentHtml: \"${2:<p>実行してもよろしいですか？</p>}\",\n\tbuttons: [\n\t\t{\n\t\t\tlabel: \"${3:キャンセル}\",\n\t\t\tstyle: \"None\",\n\t\t\tonClick: () => {\n\t\t\t\t${4:// キャンセルの処理}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\tlabel: \"${5:実行}\",\n\t\t\tstyle: \"Primary\",\n\t\t\tonClick: () => {\n\t\t\t\t${6:// 実行する処理}\n\t\t\t}\n\t\t}\n\t]\n});", name: "UI.showModal", tabTrigger: "showModal" },
+              { content: "window.UI.hideModal();", name: "UI.hideModal", tabTrigger: "hideModal" },
+              { content: "window.UI.showPrompt({\n\ttitle: \"${1:値の入力}\",\n\tdescriptionHtml: \"${2:<p>新しく設定する名前を入力してください</p>}\",\n\tdefaultValue: \"${3:デフォルト値}\",\n\tbuttons: [\n\t\t{\n\t\t\tlabel: \"${4:キャンセル}\",\n\t\t\tstyle: \"None\",\n\t\t\tonClick: () => {\n\t\t\t\t${5:// キャンセルの処理}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\tlabel: \"${6:決定}\",\n\t\t\tstyle: \"Info\",\n\t\t\tonClick: (val) => {\n\t\t\t\t${7:console.log(\"入力された値:\", val);}\n\t\t\t}\n\t\t}\n\t]\n});", name: "UI.showPrompt", tabTrigger: "showPrompt" }
             ];
             snippetManager.register(customJsSnippets, "javascript");
             snippetManager.register(customJsSnippets, "html");
@@ -356,6 +363,7 @@ export default {
       settingsEditor.value.comp = comp;
       settingsEditor.value.tempId = comp.customId || '';
       settingsEditor.value.tempClass = comp.customClass || '';
+      settingsEditor.value.tempOnClick = comp.customOnClick || '';
       
       const hasOptions = comp.options !== undefined;
       settingsEditor.value.hasOptions = hasOptions;
@@ -376,6 +384,7 @@ export default {
       if (comp) {
         comp.customId = settingsEditor.value.tempId.trim();
         comp.customClass = settingsEditor.value.tempClass.trim();
+        comp.customOnClick = settingsEditor.value.tempOnClick.trim();
         
         if (settingsEditor.value.hasOptions) {
           let optsArray = settingsEditor.value.tempOptions.split(',').map(s => s.trim()).filter(s => s);
