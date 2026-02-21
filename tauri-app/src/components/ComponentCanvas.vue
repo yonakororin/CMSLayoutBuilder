@@ -59,19 +59,22 @@
         </div>
         <!-- テーブル -->
         <div v-else-if="comp.type === 'テーブル(ページネーション付)'" class="placeholder-table">
-          <div class="table-header">
-            <span>ID</span>
-            <span>名前</span>
-            <span>ステータス</span>
-          </div>
-          <div class="table-body">
-            <div class="table-row"><span>001</span><span>サンプル</span><span>アクティブ</span></div>
-            <div class="table-row"><span>002</span><span>ダミーデータ</span><span>停止</span></div>
-          </div>
-          <div class="table-pagination">
-            <span class="material-icons xs">chevron_left</span>
-            <span>1 / 5</span>
-            <span class="material-icons xs">chevron_right</span>
+          <label v-if="comp.label !== undefined" class="table-label"><InlineEdit v-model="comp.label" /></label>
+          <div class="table-content-wrap">
+            <div class="table-header">
+              <span>ID</span>
+              <span>名前</span>
+              <span>ステータス</span>
+            </div>
+            <div class="table-body">
+              <div class="table-row"><span>001</span><span>サンプル</span><span>アクティブ</span></div>
+              <div class="table-row"><span>002</span><span>ダミーデータ</span><span>停止</span></div>
+            </div>
+            <div class="table-pagination">
+              <span class="material-icons xs">chevron_left</span>
+              <span>1 / 5</span>
+              <span class="material-icons xs">chevron_right</span>
+            </div>
           </div>
         </div>
         <!-- ボタン -->
@@ -570,6 +573,23 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  gap: 4px;
+  align-items: stretch;
+}
+.table-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  justify-content: flex-start;
+  padding: 2px 4px;
+}
+.table-content-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-primary);

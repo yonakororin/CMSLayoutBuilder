@@ -274,6 +274,8 @@ export const store = reactive({
                 else label = 'ラベル';
             } else if (isButton) {
                 label = 'ボタン';
+            } else if (isTable) {
+                label = 'データテーブル';
             }
 
             let htmlContent = undefined;

@@ -512,7 +512,7 @@ export function generateMenuHtml(page) {
     .c-radio-check { flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 0; }
     .c-radio-check label { cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 4px; padding: 1px 0; }
     
-    .c-table { flex-direction: column; padding: 0; overflow: hidden; justify-content: flex-start; }
+    .c-table { flex-direction: column; padding: 0; overflow: hidden; justify-content: flex-start; align-items: stretch; }
     .c-table-wrap { width: 100%; flex: 1; overflow-y: auto; overflow-x: auto; }
     .c-table table { width: 100%; border-collapse: collapse; min-width: 300px; }
     .c-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); position: sticky; top: 0; box-shadow: 0 2px 0 0 var(--border); }
@@ -702,8 +702,9 @@ function generateComponentHtml(comp, idx) {
     inner = `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 2px;">${comp.label || 'チェック選択'}</label>` + optsHtml;
     cls += ' c-radio-check'
   } else if (comp.type === 'テーブル(ページネーション付)') {
-    inner = `
-      <div class="c-table-wrap">
+    const tableLabel = comp.label ? `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 4px; display: block; text-align: left; width: 100%; padding-left: 8px;">${comp.label}</label>` : ''
+    inner = tableLabel + `
+      <div class="c-table-wrap" style="border: 1px solid var(--border); border-radius: 6px; flex: 1; display: flex; flex-direction: column;">
         <table>
           <thead>
             <tr><th>ユーザーID</th><th>氏名</th><th>ステータス</th><th>登録日</th></tr>
