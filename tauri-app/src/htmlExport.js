@@ -55,6 +55,85 @@ const USER_MENU_SCRIPT = `
     });
 `;
 
+const GLB_UI_CSS = `
+    /* Universal UI Overlays */
+    .glb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999999 !important; opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(2px); }
+    .glb-overlay.show { opacity: 1; pointer-events: auto; }
+    
+    .glb-modal { background: #fff; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.2s; display: flex; flex-direction: column; overflow: hidden; }
+    .glb-overlay.show .glb-modal { transform: translateY(0); }
+    .glb-modal-header { padding: 16px 20px; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .glb-modal-body { padding: 20px; font-size: 0.95rem; line-height: 1.5; color: #334155; overflow-y: auto; max-height: 60vh; }
+    .glb-modal-footer { padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px; }
+    
+    .glb-btn { padding: 8px 16px; border-radius: 6px; border: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .glb-btn-cancel { background: #e2e8f0; color: #475569; }
+    .glb-btn-cancel:hover { background: #cbd5e1; }
+    .glb-btn-primary { background: var(--primary, #4f46e5); color: #fff; }
+    .glb-btn-primary:hover { filter: brightness(1.1); }
+
+    .glb-loader { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff; font-weight: 500; }
+    .glb-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: glb-spin 1s linear infinite; }
+    @keyframes glb-spin { to { transform: rotate(360deg); } }
+
+    .glb-progress-box { background: #fff; padding: 20px; border-radius: 12px; width: 300px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center; }
+    .glb-progress-label { font-size: 0.9rem; font-weight: 600; color: #334155; margin-bottom: 12px; }
+    .glb-progress-bar-wrap { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+    .glb-progress-bar-fill { height: 100%; background: var(--primary, #4f46e5); width: 0%; transition: width 0.3s ease; }
+`;
+
+const GLB_UI_SCRIPT = `
+    // Universal UI Helpers
+    window.UI = {
+      createOverlay(id, innerHtml) {
+        let el = document.getElementById(id);
+        if (!el) {
+          el = document.createElement('div');
+          el.id = id;
+          el.className = 'glb-overlay';
+          el.innerHTML = innerHtml;
+          document.body.appendChild(el);
+        }
+        return el;
+      },
+      showLoading(text = "Now Loading...") {
+        const el = this.createOverlay('glb-loading-overlay', '<div class="glb-loader"><div class="glb-spinner"></div><div id="glb-loading-text"></div></div>');
+        document.getElementById('glb-loading-text').innerText = text;
+        void el.offsetWidth; el.classList.add('show');
+      },
+      hideLoading() {
+        const el = document.getElementById('glb-loading-overlay');
+        if (el) el.classList.remove('show');
+      },
+      showProgress(percent, labelText = "Processing...") {
+        const el = this.createOverlay('glb-progress-overlay', '<div class="glb-progress-box"><div class="glb-progress-label" id="glb-progress-label"></div><div class="glb-progress-bar-wrap"><div class="glb-progress-bar-fill" id="glb-progress-fill"></div></div></div>');
+        document.getElementById('glb-progress-label').innerText = labelText;
+        document.getElementById('glb-progress-fill').style.width = Math.min(100, Math.max(0, percent)) + '%';
+        void el.offsetWidth; el.classList.add('show');
+      },
+      hideProgress() {
+        const el = document.getElementById('glb-progress-overlay');
+        if (el) el.classList.remove('show');
+      },
+      showModal(title, contentHtml, onConfirm, onCancel) {
+        const el = this.createOverlay('glb-modal-overlay', '<div class="glb-modal"><div class="glb-modal-header" id="glb-modal-header"></div><div class="glb-modal-body" id="glb-modal-body"></div><div class="glb-modal-footer"><button class="glb-btn glb-btn-cancel" id="glb-modal-cancel">キャンセル</button><button class="glb-btn glb-btn-primary" id="glb-modal-confirm">OK</button></div></div>');
+        document.getElementById('glb-modal-header').innerText = title;
+        document.getElementById('glb-modal-body').innerHTML = contentHtml;
+        const cancelBtn = document.getElementById('glb-modal-cancel');
+        const confirmBtn = document.getElementById('glb-modal-confirm');
+        const onClickCancel = () => { if(onCancel) onCancel(); this.hideModal(); };
+        const onClickConfirm = () => { if(onConfirm) onConfirm(); this.hideModal(); };
+        cancelBtn.onclick = onClickCancel;
+        confirmBtn.onclick = onClickConfirm;
+        void el.offsetWidth; el.classList.add('show');
+      },
+      hideModal() {
+        const el = document.getElementById('glb-modal-overlay');
+        if (el) el.classList.remove('show');
+      }
+    };
+`;
+
 export function generatePortalHtml(page) {
   let categoriesHtml = page.categories.map(cat => `
     <div class="category" style="--category-theme: ${cat.themeColor || '#4f46e5'};">
@@ -151,9 +230,11 @@ export function generatePortalHtml(page) {
     }
     .icon, .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
     ${USER_MENU_CSS}
+    ${GLB_UI_CSS}
   </style>
   <script>
     ${USER_MENU_SCRIPT}
+    ${GLB_UI_SCRIPT}
   </script>
 </head>
 <body>
@@ -399,9 +480,11 @@ export function generateMenuHtml(page) {
     }
     .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
     ${USER_MENU_CSS}
+    ${GLB_UI_CSS}
   </style>
   <script>
     ${USER_MENU_SCRIPT}
+    ${GLB_UI_SCRIPT}
     
     function toggleSidebar() {
       document.querySelector('.sidebar').classList.toggle('closed');

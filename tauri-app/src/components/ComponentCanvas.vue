@@ -94,6 +94,9 @@
       <div class="context-menu-item" v-if="contextMenu.comp && contextMenu.comp.type !== 'HTML表示領域'" @click="handleContextMenuOption('editSettings')">
         <span class="material-icons xs">settings</span> 設定 (ID/Class等)
       </div>
+      <div class="context-menu-item" v-if="contextMenu.comp && contextMenu.comp.type === 'HTML表示領域'" @click="handleContextMenuOption('editHtml')">
+        <span class="material-icons xs">code</span> HTML編集
+      </div>
       <div class="context-menu-item text-danger" @click="handleContextMenuOption('delete')">
         <span class="material-icons xs">delete</span> 削除する
       </div>
