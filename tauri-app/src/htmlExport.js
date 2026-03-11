@@ -247,8 +247,6 @@ export function generateMenuPhp(page) {
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .tab-canvas {
       position: relative; width: 100%; min-height: 400px;
-      border: 1px solid #dee2e6; border-radius: 8px;
-      background: #fff;
     }
     .component { position: absolute; border: 1px solid #dee2e6; background: #fff; padding: 4px; box-sizing: border-box; border-radius: 6px; max-width: calc(100% - 48px); }
     .c-html { display: block; overflow: auto; background: transparent; border: none; }
@@ -279,10 +277,6 @@ export function generateMenuPhp(page) {
     <div class="main-content p-4 position-relative">
       ${USER_MENU_HTML}
       ${contentsHtml}
-      <div id="welcome" class="content-pane active d-flex flex-column align-items-center justify-content-center" style="height: 60vh;">
-        <h2 class="text-muted">メニューを選択してください</h2>
-        <p class="text-secondary">左側のメニューから項目を選択すると、ここに内容が表示されます。</p>
-      </div>
     </div>
   </div>
 
@@ -305,7 +299,7 @@ export function generateMenuPhp(page) {
         window.dispatchEvent(new CustomEvent('glbContentShown', { detail: { id: id } }));
       }
     }
-    function showTab(paneId, tabId) {
+      function showTab(paneId, tabId) {
       const pane = document.getElementById(paneId);
       if (!pane) return;
       // Use Bootstrap Tab API
@@ -315,6 +309,14 @@ export function generateMenuPhp(page) {
       }
       window.dispatchEvent(new CustomEvent('glbTabShown', { detail: { paneId: paneId, tabId: tabId } }));
     }
+
+    // Automatically open the first menu item on load
+    document.addEventListener('DOMContentLoaded', () => {
+      const firstPane = document.querySelector('.content-pane');
+      if (firstPane) {
+        showContentDirect(firstPane.id);
+      }
+    });
   </script>
 </body>
 </html>`
