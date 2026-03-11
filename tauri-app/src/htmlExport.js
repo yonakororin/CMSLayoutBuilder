@@ -711,27 +711,26 @@ function generateComponentHtml(comp, idx) {
     cls += ' c-radio-check'
   } else if (comp.type === 'テーブル(ページネーション付)') {
     const tableLabel = comp.label ? `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 4px; display: block; text-align: left; width: 100%; padding-left: 8px;">${comp.label}</label>` : ''
+    const columns = comp.columns || ['カラム1', 'カラム2', 'カラム3']
+    const thHtml = columns.map(c => `<th>${c}</th>`).join('')
+    const tdPlaceholder = columns.map(() => `<td>---</td>`).join('')
     inner = tableLabel + `
       <div class="c-table-wrap" style="border: 1px solid var(--border); border-radius: 6px; flex: 1; display: flex; flex-direction: column;">
         <table>
           <thead>
-            <tr><th>ユーザーID</th><th>氏名</th><th>ステータス</th><th>登録日</th></tr>
+            <tr>${thHtml}</tr>
           </thead>
           <tbody>
-            <tr><td>001</td><td>山田 太郎</td><td><span style="color:#10b981;">● アクティブ</span></td><td>2024/01/10</td></tr>
-            <tr><td>002</td><td>佐藤 花子</td><td><span style="color:#f59e0b;">● 保留</span></td><td>2024/02/15</td></tr>
-            <tr><td>003</td><td>鈴木 一郎</td><td><span style="color:#ef4444;">● 停止</span></td><td>2024/03/20</td></tr>
-            <tr><td>004</td><td>田中 次郎</td><td><span style="color:#10b981;">● アクティブ</span></td><td>2024/04/05</td></tr>
+            <tr>${tdPlaceholder}</tr>
+            <tr>${tdPlaceholder}</tr>
           </tbody>
         </table>
       </div>
       <div class="c-table-footer">
-        <div class="info">全12件中 1-4件を表示</div>
+        <div class="info">全0件中 0-0件を表示</div>
         <div class="pagination">
           <button class="page-btn"><span class="material-icons" style="font-size:14px;">chevron_left</span></button>
           <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
           <button class="page-btn"><span class="material-icons" style="font-size:14px;">chevron_right</span></button>
         </div>
       </div>

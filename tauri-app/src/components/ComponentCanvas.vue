@@ -62,13 +62,21 @@
           <label v-if="comp.label !== undefined" class="table-label"><InlineEdit v-model="comp.label" /></label>
           <div class="table-content-wrap">
             <div class="table-header">
-              <span>ID</span>
-              <span>名前</span>
-              <span>ステータス</span>
+              <span v-for="(col, ci) in getColumns(comp)" :key="ci" class="table-col-header">
+                <InlineEdit :modelValue="col" @update:modelValue="updateColumn(comp, ci, $event)" />
+              </span>
+              <span class="table-col-actions">
+                <button class="btn-icon table-col-btn" @click.stop="addColumn(comp)" title="カラム追加">
+                  <span class="material-icons xs">add</span>
+                </button>
+                <button class="btn-icon table-col-btn" @click.stop="removeLastColumn(comp)" title="末尾カラム削除" v-if="getColumns(comp).length > 1">
+                  <span class="material-icons xs">remove</span>
+                </button>
+              </span>
             </div>
             <div class="table-body">
-              <div class="table-row"><span>001</span><span>サンプル</span><span>アクティブ</span></div>
-              <div class="table-row"><span>002</span><span>ダミーデータ</span><span>停止</span></div>
+              <div class="table-row"><span v-for="(col, ci) in getColumns(comp)" :key="ci">---</span></div>
+              <div class="table-row"><span v-for="(col, ci) in getColumns(comp)" :key="ci">---</span></div>
             </div>
             <div class="table-pagination">
               <span class="material-icons xs">chevron_left</span>
@@ -160,6 +168,14 @@
           </div>
         </template>
 
+        <template v-if="settingsEditor.hasColumns">
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 8px 0;" />
+          <div class="flex flex-col gap-1">
+            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">テーブルカラム名 (カンマ区切り)</label>
+            <input type="text" v-model="settingsEditor.tempColumns" placeholder="例: ID,名前,ステータス" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+          </div>
+        </template>
+
         <div class="modal-actions" style="margin-top: 8px; justify-content: flex-end; display: flex; gap: 8px;">
           <button class="btn btn-ghost" @click="closeSettingsEditor">キャンセル</button>
           <button class="btn btn-primary" @click="saveSettingsEditor">保存</button>
@@ -203,7 +219,8 @@ export default {
     const aceEditorInstance = shallowRef(null)
     const settingsEditor = ref({ 
       show: false, comp: null, tempId: '', tempClass: '', tempOnClick: '', 
-      tempOptions: '', tempDefault: '', hasOptions: false 
+      tempOptions: '', tempDefault: '', hasOptions: false,
+      tempColumns: '', hasColumns: false
     })
 
     // Drag state
@@ -343,6 +360,24 @@ export default {
       e.target.setPointerCapture(e.pointerId)
     }
 
+    // --- Table column helpers ---
+    function getColumns(comp) {
+      if (!comp.columns) comp.columns = ['カラム1', 'カラム2', 'カラム3']
+      return comp.columns
+    }
+    function updateColumn(comp, idx, val) {
+      if (!comp.columns) comp.columns = ['カラム1', 'カラム2', 'カラム3']
+      comp.columns[idx] = val
+    }
+    function addColumn(comp) {
+      if (!comp.columns) comp.columns = ['カラム1', 'カラム2', 'カラム3']
+      comp.columns.push('カラム' + (comp.columns.length + 1))
+    }
+    function removeLastColumn(comp) {
+      if (!comp.columns || comp.columns.length <= 1) return
+      comp.columns.pop()
+    }
+
     function onPointerMove(e) {
       if (dragState) {
         const dx = e.clientX - dragState.startX
@@ -376,6 +411,12 @@ export default {
         settingsEditor.value.tempOptions = (comp.options || []).join(', ');
         settingsEditor.value.tempDefault = comp.defaultValue || '';
       }
+
+      const hasColumns = comp.type === 'テーブル(ページネーション付)';
+      settingsEditor.value.hasColumns = hasColumns;
+      if (hasColumns) {
+        settingsEditor.value.tempColumns = getColumns(comp).join(', ');
+      }
       
       settingsEditor.value.show = true;
     }
@@ -396,6 +437,12 @@ export default {
           if (optsArray.length === 0) optsArray = ['選択肢1']; // fallback
           comp.options = optsArray;
           comp.defaultValue = settingsEditor.value.tempDefault.trim();
+        }
+
+        if (settingsEditor.value.hasColumns) {
+          let colsArray = settingsEditor.value.tempColumns.split(',').map(s => s.trim()).filter(s => s);
+          if (colsArray.length === 0) colsArray = ['カラム1'];
+          comp.columns = colsArray;
         }
       }
       closeSettingsEditor();
@@ -445,6 +492,7 @@ export default {
       htmlEditor, closeHtmlEditor, saveHtmlEditor, aceContainerRef, updateKeybinding,
       settingsEditor, openSettingsEditor, closeSettingsEditor, saveSettingsEditor,
       getIframeSrcdoc,
+      getColumns, updateColumn, addColumn, removeLastColumn,
       store 
     }
   },
@@ -606,6 +654,27 @@ export default {
 }
 .table-header span, .table-row span {
   flex: 1;
+}
+.table-col-header {
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+.table-col-actions {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+  pointer-events: auto;
+}
+.table-col-btn {
+  width: 18px !important;
+  height: 18px !important;
+  padding: 1px !important;
+  opacity: 0.5;
+}
+.table-col-btn:hover {
+  opacity: 1;
+  color: var(--accent) !important;
 }
 .table-body {
   flex: 1;

@@ -309,7 +309,8 @@ export const store = reactive({
                 customClass: '',
                 ...(options ? { options, defaultValue } : {}),
                 ...(label ? { label } : {}),
-                ...(htmlContent !== undefined ? { htmlContent } : {})
+                ...(htmlContent !== undefined ? { htmlContent } : {}),
+                ...(isTable ? { columns: ['カラム1', 'カラム2', 'カラム3'] } : {})
             })
         }
     },
