@@ -109,7 +109,7 @@ import { store } from './store.js'
 import PortalBuilder from './components/PortalBuilder.vue'
 import MenuBuilder from './components/MenuBuilder.vue'
 import HelpModal from './components/HelpModal.vue'
-import { generatePortalHtml, generateMenuHtml } from './htmlExport.js'
+import { generatePortalPhp, generateMenuHtml } from './htmlExport.js'
 
 export default {
   name: 'App',
@@ -155,11 +155,11 @@ export default {
             // Write Portal Pages
             const portalDir = await dirHandle.getDirectoryHandle('ポータルページ', { create: true })
             for (const page of store.portalPages) {
-              const html = generatePortalHtml(page)
+              const php = generatePortalPhp(page)
               const pageDir = await portalDir.getDirectoryHandle(page.name, { create: true })
-              const ph = await pageDir.getFileHandle('index.html', { create: true })
+              const ph = await pageDir.getFileHandle('index.php', { create: true })
               const pw = await ph.createWritable()
-              await pw.write(html)
+              await pw.write(php)
               await pw.close()
             }
 

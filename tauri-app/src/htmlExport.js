@@ -199,22 +199,29 @@ const GLB_UI_SCRIPT = `
     };
 `;
 
-export function generatePortalHtml(page) {
+export function generatePortalPhp(page) {
   let categoriesHtml = page.categories.map(cat => `
+    <?php /* カテゴリ: ${cat.name} — 表示条件をここに記述 */ ?>
+    <?php /* if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin','user'])): */ ?>
     <div class="category" style="--category-theme: ${cat.themeColor || '#4f46e5'};">
       <h2>${cat.name}</h2>
       <div class="cards">
         ${cat.cards.map(card => `
+          <?php /* カード: ${card.title} — 表示条件をここに記述 */ ?>
+          <?php /* if (...): */ ?>
           <a class="card" href="${card.link || '#'}" target="_blank">
             <span class="icon">${card.icon}</span>
             <span class="title">${card.title}</span>
           </a>
+          <?php /* endif; */ ?>
         `).join('')}
       </div>
     </div>
+    <?php /* endif; */ ?>
   `).join('')
 
-  return `<!DOCTYPE html>
+  return `<?php session_start(); ?>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -305,7 +312,7 @@ export function generatePortalHtml(page) {
 <body>
   ${USER_MENU_HTML}
   <div class="container">
-    <h1>${page.name}</h1>
+    <h1><?php echo htmlspecialchars('${page.name.replace(/'/g, "\\'")}'); ?></h1>
     ${categoriesHtml}
   </div>
 </body>
