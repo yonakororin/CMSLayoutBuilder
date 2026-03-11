@@ -119,13 +119,41 @@
       <div class="modal-content flex flex-col gap-3" style="width: 700px; max-width: 90vw; pointer-events: auto; padding: 16px;" @mousedown.stop>
         <div class="flex items-center justify-between">
           <h3 style="margin: 0;">HTML / JS コード編集</h3>
-          <div class="flex items-center gap-2">
-            <label style="font-size: 12px; color: var(--text-muted);">Keybinding:</label>
-            <select v-model="htmlEditor.keybinding" @change="updateKeybinding" style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); outline: none;">
-              <option value="normal">Normal</option>
-              <option value="vim">Vim</option>
-              <option value="emacs">Emacs</option>
-            </select>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <label style="font-size: 12px; color: var(--text-muted);">追加:</label>
+              <select @change="insertSnippet" style="font-size: 12px; padding: 4px; border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); outline: none;">
+                <option value="">-- スニペットを選択 --</option>
+                <optgroup label="PHP (サーバーサイド)">
+                  <option value="php_session">セッション確認 (権限チェック)</option>
+                  <option value="php_db_query">PDO データベースクエリ展開</option>
+                  <option value="php_echo">PHP 変数出力 (htmlspecialchars)</option>
+                </optgroup>
+                <optgroup label="JavaScript (クライアントサイド)">
+                  <option value="js_fetch">API Fetch リクエスト</option>
+                  <option value="js_dom_ready">DOM Ready イベント</option>
+                  <option value="js_modal">独自モーダル表示 (window.UI)</option>
+                </optgroup>
+                <optgroup label="HTML (UI部品)">
+                  <option value="html_alert">Bootstrap アラート</option>
+                  <option value="html_card">カスタム カードレイアウト</option>
+                </optgroup>
+                <optgroup label="カスタム (ブラウザ保存)" v-if="customSnippets.length > 0">
+                  <option v-for="cs in customSnippets" :key="cs.id" :value="'custom_' + cs.id">{{ cs.name }}</option>
+                </optgroup>
+              </select>
+              <button class="btn btn-ghost" style="padding: 2px; height: auto;" @click="openSnippetManager" title="カスタムスニペットを管理">
+                <span class="material-icons sm" style="font-size: 16px;">settings</span>
+              </button>
+            </div>
+            <div class="flex items-center gap-2">
+              <label style="font-size: 12px; color: var(--text-muted);">Keybinding:</label>
+              <select v-model="htmlEditor.keybinding" @change="updateKeybinding" style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); outline: none;">
+                <option value="normal">Normal</option>
+                <option value="vim">Vim</option>
+                <option value="emacs">Emacs</option>
+              </select>
+            </div>
           </div>
         </div>
         <div ref="aceContainerRef" style="width: 100%; height: 350px; border-radius: 6px; border: 1px solid var(--border);"></div>
@@ -179,6 +207,44 @@
         <div class="modal-actions" style="margin-top: 8px; justify-content: flex-end; display: flex; gap: 8px;">
           <button class="btn btn-ghost" @click="closeSettingsEditor">キャンセル</button>
           <button class="btn btn-primary" @click="saveSettingsEditor">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Snippet Manager Modal -->
+    <div v-if="snippetManager.show" class="modal-overlay" @mousedown.prevent.stop="closeSnippetManager">
+      <div class="modal-content flex flex-col gap-3" style="width: 500px; max-width: 90vw; pointer-events: auto;" @mousedown.stop>
+        <h3 style="margin:0 0 8px 0;">カスタムスニペット管理</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px;">
+          よく使うコード片を登録できます。（このブラウザ/PCにのみ保存されます）
+        </p>
+
+        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-surface);">
+          <div v-for="snip in customSnippets" :key="snip.id" class="flex items-center justify-between p-2 border-bottom">
+            <div class="truncate text-sm fw-bold" style="color: var(--text-primary);">
+              {{ snip.name }} 
+              <span v-if="snip.trigger" class="badge bg-secondary ms-2" style="font-size: 10px; font-weight: normal;">trigger: {{ snip.trigger }}</span>
+            </div>
+            <button class="btn-icon danger" @click="removeCustomSnippet(snip.id)" title="削除"><span class="material-icons xs">delete</span></button>
+          </div>
+          <div v-if="customSnippets.length === 0" class="p-3 text-center text-muted" style="font-size: 12px;">登録されていません</div>
+        </div>
+
+        <div class="flex flex-col gap-2 mt-2">
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">新しいスニペット名</label>
+          <input type="text" v-model="snippetManager.newName" placeholder="例: カスタムヘッダー" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">呼び出しトリガー (VSCode風: 半角英数)</label>
+          <input type="text" v-model="snippetManager.newTrigger" placeholder="例: myheader" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box;" />
+          
+          <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">挿入するコード ($1, $2 でカーソル位置指定)</label>
+          <textarea v-model="snippetManager.newCode" rows="4" placeholder="ここにスニペットのコードを貼り付けます..." style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; width: 100%; box-sizing: border-box; font-family: monospace;"></textarea>
+          
+          <button class="btn btn-primary btn-sm align-self-end mt-1" style="width: fit-content;" @click="addCustomSnippet">追加して保存</button>
+        </div>
+        
+        <div class="modal-actions" style="justify-content: flex-end; display: flex; gap: 8px; margin-top: 8px;">
+          <button class="btn btn-ghost" @click="closeSnippetManager">閉じる</button>
         </div>
       </div>
     </div>
@@ -312,6 +378,24 @@ export default {
             ];
             snippetManager.register(customJsSnippets, "javascript");
             snippetManager.register(customJsSnippets, "html");
+
+            // Register standard dropdown snippets as VSCode tab-triggers
+            const prebuiltSnippets = Object.keys(snippets).map(key => ({
+              content: snippets[key],
+              name: key,
+              tabTrigger: key
+            }));
+            snippetManager.register(prebuiltSnippets, "html");
+            snippetManager.register(prebuiltSnippets, "javascript");
+
+            // Register user custom snippets as VSCode tab-triggers
+            const userSnippets = customSnippets.value.map(cs => ({
+              content: cs.code,
+              name: cs.name,
+              tabTrigger: cs.trigger || cs.name
+            }));
+            snippetManager.register(userSnippets, "html");
+            snippetManager.register(userSnippets, "javascript");
             
           } else {
             aceEditorInstance.value.setValue(htmlEditor.value.content, -1)
@@ -348,6 +432,90 @@ export default {
         store.triggerSave()
       }
     }
+
+    const snippets = {
+      php_session: `<?php\n// セッションによる権限チェック\nif (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {\n    // 管理者向けコンテンツ\n} else {\n    // 一般ユーザー向けコンテンツ\n}\n?>`,
+      php_db_query: `<?php\n// データベースクエリの例\n/*\n$stmt = $pdo->prepare("SELECT * FROM users WHERE status = ?");\n$stmt->execute(['active']);\n$results = $stmt->fetchAll(PDO::FETCH_ASSOC);\nforeach ($results as $row) {\n    echo "<div>" . htmlspecialchars($row['name']) . "</div>";\n}\n*/\n?>`,
+      php_echo: `<?php echo htmlspecialchars($変数, ENT_QUOTES, 'UTF-8'); ?>`,
+      js_fetch: `<script>\n// 非同期でデータを取得する例\nfetch('/api/endpoint')\n  .then(response => response.json())\n  .then(data => {\n      console.log(data);\n  })\n  .catch(error => console.error('Error:', error));\n<\\/script>`,
+      js_dom_ready: `<script>\ndocument.addEventListener('DOMContentLoaded', () => {\n  // ページ読み込み完了時の処理\n});\n<\\/script>`,
+      js_modal: `<script>\n// 組み込みのUIモーダルを呼び出す\nwindow.UI.showModal('確認', '<p>本当に実行しますか？</p>', () => {\n  console.log('OK pressed');\n});\n<\\/script>`,
+      html_alert: `<div class="alert alert-info alert-dismissible fade show" role="alert">\n  <strong>お知らせ:</strong> ここにメッセージを入力\n  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>\n</div>`,
+      html_card: `<div class="card shadow-sm mb-3">\n  <div class="card-header bg-white fw-bold">カードタイトル</div>\n  <div class="card-body">\n    <p class="card-text">コンテンツをここに配置します。</p>\n  </div>\n</div>`
+    };
+
+    function insertSnippet(event) {
+      const val = event.target.value;
+      if (!val || !aceEditorInstance.value) return;
+      
+      let snippetText = snippets[val];
+      
+      // Try custom snippets
+      if (val.startsWith('custom_')) {
+        const id = val.replace('custom_', '');
+        const custom = customSnippets.value.find(c => c.id === id);
+        if (custom) snippetText = custom.code;
+      }
+
+      if (snippetText) {
+        aceEditorInstance.value.session.insert(aceEditorInstance.value.getCursorPosition(), snippetText);
+        aceEditorInstance.value.focus();
+      }
+      event.target.value = ""; // Reset select
+    }
+
+    // --- Custom Snippets Manager ---
+    const customSnippets = ref(JSON.parse(localStorage.getItem('cms_custom_snippets') || '[]'))
+    const snippetManager = ref({ show: false, newName: '', newTrigger: '', newCode: '' })
+
+    function saveCustomSnippets() {
+      localStorage.setItem('cms_custom_snippets', JSON.stringify(customSnippets.value))
+    }
+
+    function openSnippetManager() {
+      snippetManager.value.show = true
+    }
+
+    function closeSnippetManager() {
+      snippetManager.value.show = false
+      snippetManager.value.newName = ''
+      snippetManager.value.newTrigger = ''
+      snippetManager.value.newCode = ''
+    }
+
+    function addCustomSnippet() {
+      if (!snippetManager.value.newName.trim() || !snippetManager.value.newCode.trim()) return
+      
+      const newSnip = {
+        id: Date.now().toString(36),
+        name: snippetManager.value.newName.trim(),
+        trigger: snippetManager.value.newTrigger.trim(),
+        code: snippetManager.value.newCode
+      };
+      
+      customSnippets.value.push(newSnip)
+      saveCustomSnippets()
+      
+      // Live register to ACE editor without reopening
+      if (aceEditorInstance.value) {
+        const aceSnippetManager = ace.require("ace/snippets").snippetManager;
+        aceSnippetManager.register([{
+          content: newSnip.code,
+          name: newSnip.name,
+          tabTrigger: newSnip.trigger || newSnip.name
+        }], "html");
+      }
+      
+      snippetManager.value.newName = ''
+      snippetManager.value.newTrigger = ''
+      snippetManager.value.newCode = ''
+    }
+
+    function removeCustomSnippet(id) {
+      customSnippets.value = customSnippets.value.filter(cs => cs.id !== id)
+      saveCustomSnippets()
+    }
+    // -------------------------------
 
     function startResize(e, comp) {
       resizeState = {
@@ -489,11 +657,12 @@ export default {
     return { 
       canvasRef, handlePointerDown, startResize, 
       contextMenu, showContextMenu, handleContextMenuOption,
-      htmlEditor, closeHtmlEditor, saveHtmlEditor, aceContainerRef, updateKeybinding,
+      htmlEditor, closeHtmlEditor, saveHtmlEditor, aceContainerRef, updateKeybinding, insertSnippet,
       settingsEditor, openSettingsEditor, closeSettingsEditor, saveSettingsEditor,
       getIframeSrcdoc,
       getColumns, updateColumn, addColumn, removeLastColumn,
-      store 
+      store,
+      customSnippets, snippetManager, openSnippetManager, closeSnippetManager, addCustomSnippet, removeCustomSnippet
     }
   },
 }

@@ -331,7 +331,36 @@ export const store = reactive({
         try {
             const data = JSON.parse(json)
             this.portalPages = data.portalPages || []
-            this.menuPages = data.menuPages || []
+            
+            // Migrate old menu structure to new tabs structure if necessary
+            this.menuPages = (data.menuPages || []).map(page => {
+                const migratedMenus = (page.menus || []).map(menu => {
+                    const migratedSubmenus = (menu.submenus || []).map(sub => {
+                        if (!sub.tabs) {
+                            sub.tabs = [{
+                                id: generateId(),
+                                name: 'タブ1',
+                                components: sub.components || []
+                            }];
+                            delete sub.components;
+                        }
+                        return sub;
+                    });
+                    
+                    if (!menu.tabs) {
+                        menu.tabs = [{
+                            id: generateId(),
+                            name: 'タブ1',
+                            components: menu.components || []
+                        }];
+                        delete menu.components;
+                    }
+                    
+                    return { ...menu, submenus: migratedSubmenus };
+                });
+                return { ...page, menus: migratedMenus };
+            })
+            
         } catch (e) {
             console.error('Failed to parse project data:', e)
         }
