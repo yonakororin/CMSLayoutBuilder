@@ -247,8 +247,8 @@ export function generateMenuPhp(page) {
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .tab-canvas {
       position: relative; width: 100%; min-height: 400px;
-      border: 1px dashed #dee2e6; border-radius: 8px;
-      background: repeating-linear-gradient(45deg, #f8f9fa, #f8f9fa 10px, #fff 10px, #fff 20px);
+      border: 1px solid #dee2e6; border-radius: 8px;
+      background: #fff;
     }
     .component { position: absolute; border: 1px solid #dee2e6; background: #fff; padding: 4px; box-sizing: border-box; border-radius: 6px; max-width: calc(100% - 48px); }
     .c-html { display: block; overflow: auto; background: transparent; border: none; }
