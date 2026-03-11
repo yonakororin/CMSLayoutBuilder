@@ -2,7 +2,17 @@
   <div v-if="show" class="diff-overlay">
     <div class="diff-modal">
       <div class="dm-header">
-        <h3 class="m-0 fs-5 fw-bolder text-dark" style="color: #000; letter-spacing: 0.5px;">ファイル保存の確認</h3>
+        <div class="d-flex align-items-center gap-3">
+          <h3 class="m-0 fs-5 fw-bolder text-dark" style="color: #000; letter-spacing: 0.5px;">ファイル保存の確認</h3>
+          <div v-if="activeWrite && changeIndices.length > 0" class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-1" @click="prevChange" title="前の変更へ">
+              <span class="material-icons sm" style="font-size:16px;">keyboard_arrow_up</span> 前へ
+            </button>
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-1" @click="nextChange" title="次の変更へ">
+              <span class="material-icons sm" style="font-size:16px;">keyboard_arrow_down</span> 次へ
+            </button>
+          </div>
+        </div>
         <button class="btn-close" @click="cancel"></button>
       </div>
       <div class="dm-body">
@@ -32,8 +42,8 @@
                   <span class="material-icons sm">add_circle_outline</span> 変更後（今回上書きする内容）
                 </div>
               </div>
-              <div class="diff-blocks">
-                <div v-for="(block, bIdx) in activeWrite.blocks" :key="bIdx" class="diff-block" :class="block.type">
+              <div class="diff-blocks" ref="diffBlocksRef">
+                <div v-for="(block, bIdx) in activeWrite.blocks" :key="bIdx" class="diff-block" :class="block.type" :ref="el => setBlockRef(el, bIdx)">
                   <div v-if="block.type === 'changed'" class="block-actions px-3 py-2 border-bottom border-top flex align-items-center" style="background:#f1f5f9;">
                      <label class="form-check-label fw-bolder text-dark cursor-pointer d-flex align-items-center gap-2" style="font-size:14px; color:#0f172a;">
                        <input type="checkbox" class="form-check-input mt-0" v-model="block.selected" style="width:16px; height:16px;" /> 
@@ -65,7 +75,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { diffLines } from 'diff'
 
 export default {
@@ -77,6 +87,54 @@ export default {
     let resolvePromise = null
 
     const activeWrite = computed(() => writes.value[activeIdx.value])
+    
+    // --- Navigation ---
+    const diffBlocksRef = ref(null)
+    const blockRefs = ref([])
+    const currentChangeIdx = ref(-1)
+
+    const changeIndices = computed(() => {
+      if (!activeWrite.value || !activeWrite.value.blocks) return []
+      return activeWrite.value.blocks
+        .map((b, i) => b.type === 'changed' ? i : -1)
+        .filter(i => i !== -1)
+    })
+
+    function setBlockRef(el, bIdx) {
+      if (el) { blockRefs.value[bIdx] = el }
+    }
+
+    watch(activeWrite, () => {
+      // Reset navigation state when switching files
+      blockRefs.value = []
+      currentChangeIdx.value = -1
+    })
+
+    function scrollToChange(direction) {
+      const indices = changeIndices.value
+      if (indices.length === 0) return
+
+      if (direction === 'next') {
+        currentChangeIdx.value++
+        if (currentChangeIdx.value >= indices.length) currentChangeIdx.value = 0
+      } else {
+        currentChangeIdx.value--
+        if (currentChangeIdx.value < 0) currentChangeIdx.value = indices.length - 1
+      }
+
+      const targetBlockIdx = indices[currentChangeIdx.value]
+      const targetEl = blockRefs.value[targetBlockIdx]
+      if (targetEl && diffBlocksRef.value) {
+        // smooth scroll the diff-blocks container
+        const container = diffBlocksRef.value
+        const topPos = targetEl.offsetTop - container.offsetTop
+        container.scrollTo({ top: topPos, behavior: 'smooth' })
+      }
+    }
+
+    function nextChange() { scrollToChange('next') }
+    function prevChange() { scrollToChange('prev') }
+    // --- End Navigation ---
 
     function computeBlocks(oldStr, newStr) {
       const changes = diffLines(oldStr || '', newStr || '')
@@ -108,6 +166,12 @@ export default {
       })
       activeIdx.value = 0
       show.value = true
+      nextTick(() => {
+        // Attempt to jump to the first change automatically 
+        if (changeIndices.value.length > 0) {
+          nextChange()
+        }
+      })
       return new Promise((resolve) => {
         resolvePromise = resolve
       })
@@ -136,7 +200,11 @@ export default {
       }
     }
 
-    return { show, writes, activeIdx, activeWrite, open, cancel, confirm }
+    return { 
+      show, writes, activeIdx, activeWrite, 
+      open, cancel, confirm,
+      diffBlocksRef, setBlockRef, nextChange, prevChange, changeIndices
+    }
   }
 }
 </script>
