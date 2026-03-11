@@ -1,75 +1,46 @@
-const USER_MENU_CSS = `
-    .user-profile-menu { position: absolute; top: 24px; right: 32px; z-index: 100; }
-    #user-menu-btn {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--bg-card); border: 1px solid var(--border);
-      padding: 8px 16px; border-radius: 20px; cursor: pointer;
-      color: var(--text-main); font-size: 0.95rem; font-weight: 600;
-      box-shadow: var(--shadow-sm); transition: all 0.2s;
-    }
-    #user-menu-btn:hover { box-shadow: var(--shadow-md); background: rgba(0,0,0,0.02); }
-    #user-menu-btn .material-icons { font-size: 20px; color: var(--text-muted); }
-    .user-dropdown-menu {
-      position: absolute; top: calc(100% + 8px); right: 0;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 12px; box-shadow: var(--shadow-md);
-      width: 200px; display: none; flex-direction: column; overflow: hidden;
-    }
-    .user-dropdown-menu.show { display: flex; animation: dropIn 0.2s ease; }
-    @keyframes dropIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .user-dropdown-menu a {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 16px; text-decoration: none;
-      color: var(--text-main); font-size: 0.9rem; font-weight: 500;
-      transition: background 0.2s;
-    }
-    .user-dropdown-menu a:hover { background: rgba(0,0,0,0.03); }
-    .user-dropdown-menu a .material-icons { color: var(--text-muted); font-size: 18px; }
-`;
+// ============================================================
+// CMS Layout Builder – HTML/PHP Export (Bootstrap 5)
+// ============================================================
 
+// Bootstrap 5 CDN links
+const BS_CDN = `
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+`;
+const BS_JS = `<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"><\/script>`;
+
+// User profile menu (Bootstrap dropdown)
 const USER_MENU_HTML = `
-    <div class="user-profile-menu">
-      <button id="user-menu-btn" onclick="document.getElementById('user-dropdown').classList.toggle('show')">
-        <span class="material-icons">account_circle</span>
+    <div class="dropdown position-absolute" style="top: 16px; right: 24px; z-index: 100;">
+      <button id="user-menu-btn" class="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="material-icons" style="font-size:20px;">account_circle</span>
         <span id="user-name-display">ユーザー名</span>
-        <span class="material-icons" style="font-size: 16px; margin-left: -4px;">arrow_drop_down</span>
+        <span class="material-icons" style="font-size:16px;">arrow_drop_down</span>
       </button>
-      <div id="user-dropdown" class="user-dropdown-menu">
-        <a href="#" id="user-action-password" onclick="event.preventDefault(); console.log('Click: Password Change');">
-          <span class="material-icons">vpn_key</span> パスワード変更
-        </a>
-        <a href="#" id="user-action-logout" onclick="event.preventDefault(); console.log('Click: Logout');">
-          <span class="material-icons">logout</span> ログアウト
-        </a>
-      </div>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" id="user-action-password" onclick="event.preventDefault(); console.log('Click: Password Change');">
+          <span class="material-icons" style="font-size:18px;">vpn_key</span> パスワード変更
+        </a></li>
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" id="user-action-logout" onclick="event.preventDefault(); console.log('Click: Logout');">
+          <span class="material-icons" style="font-size:18px;">logout</span> ログアウト
+        </a></li>
+      </ul>
     </div>
 `;
 
-const USER_MENU_SCRIPT = `
-    document.addEventListener('click', function(e) {
-      const btn = document.getElementById('user-menu-btn');
-      const dropdown = document.getElementById('user-dropdown');
-      if (btn && dropdown && !btn.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.classList.remove('show');
-      }
-    });
-`;
-
+// GLB UI overlay CSS (kept as-is, these are custom overlays that don't conflict with Bootstrap)
 const GLB_UI_CSS = `
-    /* Universal UI Overlays */
     .glb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999999 !important; opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(2px); }
     .glb-overlay.show { opacity: 1; pointer-events: auto; }
-    
     .glb-modal { background: #fff; border-radius: 12px; width: 400px; max-width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.2s; display: flex; flex-direction: column; overflow: hidden; }
     .glb-overlay.show .glb-modal { transform: translateY(0); }
     .glb-modal-header { padding: 16px 20px; font-weight: 600; font-size: 1.1rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .glb-modal-body { padding: 20px; font-size: 0.95rem; line-height: 1.5; color: #334155; overflow-y: auto; max-height: 60vh; }
     .glb-modal-footer { padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 8px; }
-    
     .glb-btn { padding: 8px 16px; border-radius: 6px; border: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .glb-btn-cancel { background: #e2e8f0; color: #475569; }
     .glb-btn-cancel:hover { background: #cbd5e1; }
-    .glb-btn-primary { background: var(--primary, #4f46e5); color: #fff; }
+    .glb-btn-primary { background: #4f46e5; color: #fff; }
     .glb-btn-primary:hover { filter: brightness(1.1); }
     .glb-btn-info { background: #3b82f6; color: #fff; }
     .glb-btn-info:hover { background: #2563eb; }
@@ -79,32 +50,22 @@ const GLB_UI_CSS = `
     .glb-btn-danger:hover { background: #dc2626; }
     .glb-btn-none { background: transparent; color: #64748b; border: 1px solid transparent; }
     .glb-btn-none:hover { background: #f1f5f9; color: #334155; }
-    
     .glb-input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; margin-top: 12px; box-sizing: border-box; font-family: inherit; }
-    .glb-input:focus { outline: none; border-color: var(--primary, #4f46e5); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
-
+    .glb-input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
     .glb-loader { display: flex; flex-direction: column; align-items: center; gap: 12px; color: #fff; font-weight: 500; }
     .glb-spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: glb-spin 1s linear infinite; }
     @keyframes glb-spin { to { transform: rotate(360deg); } }
-
     .glb-progress-box { background: #fff; padding: 20px; border-radius: 12px; width: 300px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); text-align: center; }
     .glb-progress-label { font-size: 0.9rem; font-weight: 600; color: #334155; margin-bottom: 12px; }
     .glb-progress-bar-wrap { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
-    .glb-progress-bar-fill { height: 100%; background: var(--primary, #4f46e5); width: 0%; transition: width 0.3s ease; }
+    .glb-progress-bar-fill { height: 100%; background: #4f46e5; width: 0%; transition: width 0.3s ease; }
 `;
 
 const GLB_UI_SCRIPT = `
-    // Universal UI Helpers
     window.UI = {
       createOverlay(id, innerHtml) {
         let el = document.getElementById(id);
-        if (!el) {
-          el = document.createElement('div');
-          el.id = id;
-          el.className = 'glb-overlay';
-          el.innerHTML = innerHtml;
-          document.body.appendChild(el);
-        }
+        if (!el) { el = document.createElement('div'); el.id = id; el.className = 'glb-overlay'; el.innerHTML = innerHtml; document.body.appendChild(el); }
         return el;
       },
       showLoading(text = "Now Loading...") {
@@ -112,31 +73,21 @@ const GLB_UI_SCRIPT = `
         document.getElementById('glb-loading-text').innerText = text;
         void el.offsetWidth; el.classList.add('show');
       },
-      hideLoading() {
-        const el = document.getElementById('glb-loading-overlay');
-        if (el) el.classList.remove('show');
-      },
+      hideLoading() { const el = document.getElementById('glb-loading-overlay'); if (el) el.classList.remove('show'); },
       showProgress(percent, labelText = "Processing...") {
         const el = this.createOverlay('glb-progress-overlay', '<div class="glb-progress-box"><div class="glb-progress-label" id="glb-progress-label"></div><div class="glb-progress-bar-wrap"><div class="glb-progress-bar-fill" id="glb-progress-fill"></div></div></div>');
         document.getElementById('glb-progress-label').innerText = labelText;
         document.getElementById('glb-progress-fill').style.width = Math.min(100, Math.max(0, percent)) + '%';
         void el.offsetWidth; el.classList.add('show');
       },
-      hideProgress() {
-        const el = document.getElementById('glb-progress-overlay');
-        if (el) el.classList.remove('show');
-      },
+      hideProgress() { const el = document.getElementById('glb-progress-overlay'); if (el) el.classList.remove('show'); },
       showModal(optOrTitle, contHtml, onConfirm, onCancel, btnConfirm = "OK", btnCancel = "キャンセル") {
         let options = optOrTitle;
         if (typeof optOrTitle === 'string') {
-          options = {
-            title: optOrTitle,
-            contentHtml: contHtml || '',
-            buttons: [
-              { label: btnCancel, style: 'None', onClick: onCancel },
-              { label: btnConfirm, style: 'Primary', onClick: onConfirm }
-            ]
-          };
+          options = { title: optOrTitle, contentHtml: contHtml || '', buttons: [
+            { label: btnCancel, style: 'None', onClick: onCancel },
+            { label: btnConfirm, style: 'Primary', onClick: onConfirm }
+          ]};
         }
         const { title = '', contentHtml = '', buttons = [] } = options || {};
         const el = this.createOverlay('glb-modal-overlay', '<div class="glb-modal"><div class="glb-modal-header" id="glb-modal-header"></div><div class="glb-modal-body" id="glb-modal-body"></div><div class="glb-modal-footer" id="glb-modal-footer"></div></div>');
@@ -144,77 +95,62 @@ const GLB_UI_SCRIPT = `
         document.getElementById('glb-modal-body').innerHTML = contentHtml;
         const footer = document.getElementById('glb-modal-footer');
         footer.innerHTML = '';
-        
-        buttons.forEach((btnInfo, idx) => {
+        buttons.forEach((btnInfo) => {
           const btn = document.createElement('button');
           const style = (btnInfo.style || 'Primary').toLowerCase();
           btn.className = 'glb-btn glb-btn-' + (style === 'none' ? 'none' : (['primary', 'info', 'warning', 'danger'].includes(style) ? style : 'cancel'));
           btn.innerText = btnInfo.label || 'Button';
-          btn.onclick = () => {
-             if (btnInfo.onClick) btnInfo.onClick();
-             this.hideModal();
-          };
+          btn.onclick = () => { if (btnInfo.onClick) btnInfo.onClick(); this.hideModal(); };
           footer.appendChild(btn);
         });
-        
         void el.offsetWidth; el.classList.add('show');
       },
-      hideModal() {
-        const el = document.getElementById('glb-modal-overlay');
-        if (el) el.classList.remove('show');
-      },
+      hideModal() { const el = document.getElementById('glb-modal-overlay'); if (el) el.classList.remove('show'); },
       showPrompt(optOrTitle, descHtml, defValue, onConfirm, onCancel, btnConfirm = "決定", btnCancel = "キャンセル") {
         let options = optOrTitle;
         if (typeof optOrTitle === 'string') {
-          options = {
-            title: optOrTitle,
-            descriptionHtml: descHtml || '',
-            defaultValue: defValue || '',
-            buttons: [
-              { label: btnCancel, style: 'None', onClick: onCancel },
-              { label: btnConfirm, style: 'Info', onClick: (val) => { if(onConfirm) onConfirm(val); } }
-            ]
-          };
+          options = { title: optOrTitle, descriptionHtml: descHtml || '', defaultValue: defValue || '', buttons: [
+            { label: btnCancel, style: 'None', onClick: onCancel },
+            { label: btnConfirm, style: 'Info', onClick: (val) => { if(onConfirm) onConfirm(val); } }
+          ]};
         }
         const { title = '値の入力', descriptionHtml = '', defaultValue = '', buttons = [] } = options || {};
-        const bodyHtml = (descriptionHtml ? descriptionHtml : '') + '<input type="text" id="glb-prompt-input" class="glb-input" value="' + (defaultValue || '').replace(/"/g, '&quot;') + '" />';
-        
-        const mappedButtons = buttons.map(btnInfo => {
-           return {
-              label: btnInfo.label,
-              style: btnInfo.style,
-              onClick: () => {
-                 const val = document.getElementById('glb-prompt-input').value;
-                 if (btnInfo.onClick) btnInfo.onClick(val);
-              }
-           };
-        });
-        
+        const bodyHtml = (descriptionHtml || '') + '<input type="text" id="glb-prompt-input" class="glb-input" value="' + (defaultValue || '').replace(/"/g, '&quot;') + '" />';
+        const mappedButtons = buttons.map(btnInfo => ({
+          label: btnInfo.label, style: btnInfo.style,
+          onClick: () => { const val = document.getElementById('glb-prompt-input').value; if (btnInfo.onClick) btnInfo.onClick(val); }
+        }));
         this.showModal({ title, contentHtml: bodyHtml, buttons: mappedButtons });
-        setTimeout(() => {
-          const input = document.getElementById('glb-prompt-input');
-          if (input) input.focus();
-        }, 100);
+        setTimeout(() => { const input = document.getElementById('glb-prompt-input'); if (input) input.focus(); }, 100);
       }
     };
 `;
 
+// ============================================================
+// Portal Page Export (Bootstrap 5 + PHP)
+// ============================================================
 export function generatePortalPhp(page) {
   let categoriesHtml = page.categories.map(cat => `
     <?php /* カテゴリ: ${cat.name} — 表示条件をここに記述 */ ?>
     <?php /* if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin','user'])): */ ?>
-    <div class="category" style="--category-theme: ${cat.themeColor || '#4f46e5'};">
-      <h2>${cat.name}</h2>
-      <div class="cards">
-        ${cat.cards.map(card => `
-          <?php /* カード: ${card.title} — 表示条件をここに記述 */ ?>
-          <?php /* if (...): */ ?>
-          <a class="card" href="${card.link || '#'}" target="_blank">
-            <span class="icon">${card.icon}</span>
-            <span class="title">${card.title}</span>
-          </a>
-          <?php /* endif; */ ?>
-        `).join('')}
+    <div class="card mb-3 border-top-0" style="border-top: 4px solid ${cat.themeColor || '#4f46e5'} !important;">
+      <div class="card-body">
+        <h5 class="card-title fw-bold" style="color: ${cat.themeColor || '#4f46e5'};">${cat.name}</h5>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2">
+          ${cat.cards.map(card => `
+            <?php /* カード: ${card.title} — 表示条件をここに記述 */ ?>
+            <?php /* if (...): */ ?>
+            <div class="col">
+              <a class="card h-100 text-decoration-none text-center p-2 border card-link" href="${card.link || '#'}" target="_blank">
+                <div class="card-body p-1 d-flex flex-column align-items-center justify-content-center">
+                  <span class="material-icons mb-1" style="font-size: 30px; color: ${cat.themeColor || '#4f46e5'};">${card.icon}</span>
+                  <span class="small fw-semibold text-dark">${card.title}</span>
+                </div>
+              </a>
+            </div>
+            <?php /* endif; */ ?>
+          `).join('')}
+        </div>
       </div>
     </div>
     <?php /* endif; */ ?>
@@ -225,121 +161,56 @@ export function generatePortalPhp(page) {
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${page.name}</title>
+  ${BS_CDN}
   <style>
-    /* Premium Modern Dashboard Aesthetics */
-    :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --bg-main: #f1f5f9;
-      --bg-card: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --border: #cbd5e1;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-      --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-      --shadow-hover: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
-      --radius: 16px;
-    }
-    body { 
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; 
-      background: var(--bg-main); 
-      background-image: radial-gradient(circle at top right, #e0e7ff, transparent 40%),
-                        radial-gradient(circle at bottom left, #e0e7ff, transparent 40%);
-      color: var(--text-main);
-      margin: 0; padding: 24px 16px; 
-      min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center;
-      box-sizing: border-box;
-    }
-    .container {
-      width: 100%; max-width: 1400px;
-    }
-    h1 { 
-      text-align: left; color: var(--text-main); 
-      font-weight: 800; font-size: 2.5rem; letter-spacing: -0.03em;
-      margin-top: 0; margin-bottom: 24px;
-      padding-bottom: 12px; border-bottom: 2px solid var(--border);
-    }
-    .category { 
-      background: var(--bg-card); border-radius: var(--radius); 
-      padding: 16px 20px; margin-bottom: 16px; 
-      box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.6);
-      border-top: 4px solid var(--category-theme);
-      backdrop-filter: blur(10px);
-    }
-    .category h2 { 
-      margin-top: 0; font-size: 1.3rem; font-weight: 700; 
-      color: var(--category-theme); margin-bottom: 12px;
-      letter-spacing: -0.01em;
-    }
-    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-    .card { 
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 80px; border: 1px solid var(--border); border-radius: 10px;
-      text-decoration: none; color: var(--text-main); 
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      padding: 8px; box-sizing: border-box;
-    }
-    .card:hover { 
-      transform: translateY(-4px); box-shadow: var(--shadow-hover); 
-      border-color: var(--category-theme); background: #ffffff;
-    }
-    .icon { 
-      font-size: 30px; margin-bottom: 8px; 
-      color: var(--category-theme); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .card:hover .icon { transform: scale(1.1) translateY(-2px); filter: brightness(0.9); }
-    .title { font-size: 0.85rem; font-weight: 600; text-align: center; line-height: 1.2; }
-    
-    /* Material Icons */
-    @font-face {
-      font-family: 'Material Icons';
-      font-style: normal;
-      font-weight: 400;
-      src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
-    }
-    .icon, .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
-    ${USER_MENU_CSS}
+    body { background: #f8f9fa; }
+    .card-link:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.2s; }
+    .card-link { transition: all 0.2s; }
     ${GLB_UI_CSS}
   </style>
-  <script>
-    ${USER_MENU_SCRIPT}
-    ${GLB_UI_SCRIPT}
-  </script>
 </head>
 <body>
   ${USER_MENU_HTML}
-  <div class="container">
-    <h1><?php echo htmlspecialchars('${page.name.replace(/'/g, "\\'")}'); ?></h1>
+  <div class="container py-4" style="max-width: 1400px;">
+    <h1 class="fw-bold mb-4 pb-3 border-bottom"><?php echo htmlspecialchars('${page.name.replace(/'/g, "\\'")}'); ?></h1>
     ${categoriesHtml}
   </div>
+  ${BS_JS}
+  <script>
+    ${GLB_UI_SCRIPT}
+  </script>
 </body>
 </html>`
 }
 
+// ============================================================
+// Menu Page Export (Bootstrap 5 + PHP)
+// ============================================================
 export function generateMenuPhp(page) {
   let menusHtml = page.menus.map((menu, mIdx) => {
     if (menu.submenus.length > 0) {
       return `
-        <div class="menu-item has-submenu">
-          <div class="menu-title" onclick="toggleSubmenu('${mIdx}')">
+        <li class="nav-item">
+          <a class="nav-link text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#submenu-${mIdx}" role="button" aria-expanded="false">
             <span>${menu.name}</span>
-            <span class="material-icons expand-icon">expand_more</span>
+            <span class="material-icons" style="font-size:20px;">expand_more</span>
+          </a>
+          <div class="collapse" id="submenu-${mIdx}">
+            <ul class="nav flex-column ms-3">${menu.submenus.map((sub, sIdx) => `
+              <li class="nav-item">
+                <a class="nav-link text-white-50 py-1" href="#" onclick="event.preventDefault(); showContent('content-${mIdx}-${sIdx}')">${sub.name}</a>
+              </li>
+            `).join('')}</ul>
           </div>
-          <ul id="submenu-${mIdx}" class="submenu">${menu.submenus.map((sub, sIdx) => `
-            <li><a href="#content-${mIdx}-${sIdx}" onclick="showContent('content-${mIdx}-${sIdx}')">${sub.name}</a></li>
-          `).join('')}</ul>
-        </div>
+        </li>
       `
     } else {
       return `
-        <div class="menu-item menu-item-direct">
-          <div class="menu-title" onclick="showContentDirect('content-${mIdx}-main')">
-            <span>${menu.name}</span>
-          </div>
-        </div>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="#" onclick="event.preventDefault(); showContentDirect('content-${mIdx}-main')">${menu.name}</a>
+        </li>
       `
     }
   }).join('')
@@ -357,236 +228,72 @@ export function generateMenuPhp(page) {
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${page.name}</title>
+  ${BS_CDN}
   <style>
-    :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --bg-main: #f1f5f9;
-      --bg-sidebar: #0f172a;      /* Sleek Dark Sidebar */
-      --sidebar-text: #f8fafc;
-      --sidebar-muted: #94a3b8;
-      --sidebar-border: #1e293b;
-      --sidebar-hover: #1e293b;
-      --sidebar-active: #38bdf8;  /* Vibrant Sky Blue Accent */
-      --bg-card: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-      --radius: 16px;
+    body { overflow: hidden; }
+    .sidebar {
+      width: 240px; min-width: 240px; min-height: 100vh;
+      background: #0f172a; transition: width 0.3s, min-width 0.3s;
+      overflow-x: hidden; overflow-y: auto;
     }
-    body { 
-      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; 
-      display: flex; height: 100vh; margin: 0; background: var(--bg-main); 
-      color: var(--text-main); overflow: hidden;
+    .sidebar.closed { width: 60px; min-width: 60px; }
+    .sidebar.closed .sidebar-content,
+    .sidebar.closed .sidebar-title { display: none; }
+    .main-content { flex: 1; overflow-y: auto; height: 100vh; background: #f8f9fa; }
+    .content-pane { display: none; }
+    .content-pane.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .tab-canvas {
+      position: relative; width: 100%; min-height: 400px;
+      border: 1px dashed #dee2e6; border-radius: 8px;
+      background: repeating-linear-gradient(45deg, #f8f9fa, #f8f9fa 10px, #fff 10px, #fff 20px);
     }
-    .sidebar { 
-      box-sizing: border-box; width: 220px; min-width: 220px;
-      background: var(--bg-sidebar); border-right: 1px solid var(--sidebar-border); 
-      padding: 16px 12px; z-index: 10;
-      display: flex; flex-direction: column; gap: 4px;
-      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s;
-      overflow-x: hidden; white-space: nowrap; color: var(--sidebar-text);
-      box-shadow: 4px 0 24px rgba(0,0,0,0.15);
-    }
-    .sidebar.closed {
-      width: 72px; min-width: 72px; padding: 16px 12px;
-    }
-    .sidebar-header {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
-      padding-bottom: 16px; border-bottom: 2px solid var(--sidebar-border);
-    }
-    .sidebar.closed .sidebar-header { border-bottom-color: transparent; justify-content: center; }
-    .hamburger {
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0;
-      width: 44px; min-width: 44px; height: 44px; 
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--sidebar-text); 
-      border-radius: 12px; transition: all 0.3s;
-    }
-    .hamburger:hover { background: rgba(255,255,255,0.1); color: var(--sidebar-active); border-color: rgba(255,255,255,0.2); transform: scale(1.05); }
-    h2.sidebar-title { 
-      font-size: 1.35rem; font-weight: 800; letter-spacing: -0.025em;
-      margin: 0; transition: opacity 0.2s; overflow: hidden; color: var(--sidebar-text);
-    }
-    .sidebar.closed h2.sidebar-title { opacity: 0; }
-    
-    .sidebar-content {
-      display: flex; flex-direction: column; gap: 4px;
-      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 1; 
-      overflow-y: auto; overflow-x: hidden; height: 100%;
-    }
-    .sidebar.closed .sidebar-content { opacity: 0; pointer-events: none; }
-    
-    /* Menu Titles & Submenus (Dark Theme) */
-    .menu-item { margin-bottom: 0; }
-    .menu-title {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 8px 12px; font-size: 0.9rem; font-weight: 600;
-      color: var(--sidebar-text); border-radius: 8px;
-      cursor: pointer; transition: all 0.2s;
-      border: 1px solid transparent;
-    }
-    .menu-title:hover {
-      background: var(--sidebar-hover); color: var(--sidebar-text);
-      border-color: rgba(255,255,255,0.05);
-    }
-    /* Active indicator */
-    .menu-title:focus {
-      background: var(--sidebar-hover); color: var(--sidebar-active); 
-      border-color: rgba(56, 189, 248, 0.3);
-    }
-    .expand-icon { font-size: 20px; color: var(--sidebar-muted); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .menu-title:hover .expand-icon { color: var(--sidebar-active); }
-    .menu-item.open .expand-icon { transform: rotate(180deg); color: var(--sidebar-active); } 
-    
-    .menu-item ul { 
-      list-style: none; padding: 0; margin: 4px 0 0 12px; 
-      display: none; flex-direction: column; gap: 2px; 
-      border-left: 2px solid var(--sidebar-border);
-    }
-    .menu-item.open ul { display: flex; animation: slideDown 0.3s ease; }
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .menu-item a { 
-      text-decoration: none; color: var(--sidebar-muted); font-size: 0.85rem; font-weight: 500;
-      display: block; padding: 6px 10px; border-radius: 8px; margin-left: 10px;
-      transition: all 0.2s; border: 1px solid transparent;
-    }
-    .menu-item a:hover { 
-      background: rgba(255,255,255,0.05); color: var(--sidebar-text); 
-    }
-    
-    /* Main Content Area */
-    .main { 
-      flex: 1; padding: 24px; overflow-y: auto; position: relative;
-      background-image: radial-gradient(circle at center, #ffffff 0%, transparent 100%);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .content-pane { 
-      display: none; background: rgba(255,255,255,0.8); border-radius: var(--radius); 
-      padding: 24px; box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.6);
-      backdrop-filter: blur(10px);
-      height: 100%; box-sizing: border-box; animation: fadeIn 0.4s ease;
-    }
-    .content-pane.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    
-    .content-pane h3 { margin-top: 0; font-size: 1.75rem; font-weight: 800; margin-bottom: 16px; color: var(--text-main); letter-spacing: -0.02em; }
-    
-    .tabs { 
-      display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border); 
-      padding-bottom: 0; 
-    }
-    .tab { 
-      padding: 8px 16px; cursor: pointer; border-bottom: 3px solid transparent; 
-      font-size: 1rem; font-weight: 600; color: var(--text-muted); 
-      transition: all 0.2s; margin-bottom: -2px; border-radius: 8px 8px 0 0;
-    }
-    .tab:hover { color: var(--text-main); background: rgba(0,0,0,0.02); }
-    .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: rgba(79, 70, 229, 0.05); }
-    
-    .tab-content { 
-      display: none; position: relative; width: 100%; 
-      height: calc(100% - 100px); border: 1px dashed var(--border); 
-      background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 10px, #ffffff 10px, #ffffff 20px);
-      border-radius: 8px; overflow: auto; 
-    }
-    .tab-content.active { display: block; }
-    
-    .component { 
-      position: absolute; border: 1px solid var(--border); background: var(--bg-card); 
-      padding: 4px; box-sizing: border-box; box-shadow: var(--shadow-sm); 
-      border-radius: 6px; display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      max-width: calc(100% - 48px);
-    }
-    .component:hover { box-shadow: var(--shadow-md); border-color: #cbd5e1; }
-    
-    .c-html { display: block; overflow: auto; background: transparent; border: none; box-shadow: none; color: var(--text-main); margin: 0; padding: 0; }
-    .c-input { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
-    .c-input label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0px; }
-    .c-input input, .c-input select { 
-      width: 100%; padding: 4px 8px; border: 1px solid var(--border); 
-      border-radius: 4px; box-sizing: border-box; font-size: 0.85rem;
-      transition: all 0.2s; background: #f8fafc;
-    }
-    .c-input input:focus, .c-input select:focus {
-      outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); background: #ffffff;
-    }
-    .c-radio-check { flex-direction: column; justify-content: flex-start; align-items: flex-start; gap: 0; }
-    .c-radio-check label { cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 4px; padding: 1px 0; }
-    
-    .c-table { flex-direction: column; padding: 0; overflow: hidden; justify-content: flex-start; align-items: stretch; }
-    .c-table-wrap { width: 100%; flex: 1; overflow-y: auto; overflow-x: auto; }
-    .c-table table { width: 100%; border-collapse: collapse; min-width: 300px; }
-    .c-table th { background: #f8fafc; padding: 8px 12px; text-align: left; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); position: sticky; top: 0; box-shadow: 0 2px 0 0 var(--border); }
-    .c-table td { padding: 8px 12px; font-size: 0.85rem; color: var(--text-main); border-bottom: 1px solid #e2e8f0; }
-    .c-table tbody tr:hover td { background: rgba(0,0,0,0.01); }
-    .c-table-footer { width: 100%; padding: 8px 12px; background: #ffffff; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
-    .c-table-footer .info { font-size: 0.85rem; color: var(--text-muted); }
-    .c-table-footer .pagination { display: flex; gap: 4px; }
-    .c-table-footer .page-btn { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-main); transition: all 0.2s; }
-    .c-table-footer .page-btn:hover { background: #f1f5f9; }
-    .c-table-footer .page-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
-    
-    .c-button { flex-direction: column; justify-content: center; align-items: center; background: transparent; border: none; box-shadow: none; padding: 4px; }
-    .c-button button { 
-      width: 100%; height: 100%; border: none; border-radius: 6px; font-family: inherit;
-      background: var(--primary); color: #ffffff; font-size: 0.9rem; font-weight: 600; 
-      cursor: pointer; box-shadow: var(--shadow-sm); transition: all 0.2s;
-    }
-    .c-button button:hover { background: var(--primary-hover); box-shadow: var(--shadow-md); transform: translateY(-1px); }
-    
-    #welcome.active {
-       display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-       background: transparent; box-shadow: none; border: none;
-    }
-    #welcome h2 { font-size: 1.8rem; margin-bottom: 12px; color: var(--text-main); }
-    #welcome p { color: var(--text-muted); font-size: 1.1rem; max-width: 400px; line-height: 1.6; }
-    
-    /* Material Icons */
-    @font-face {
-      font-family: 'Material Icons'; font-style: normal; font-weight: 400;
-      src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
-    }
-    .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
-    ${USER_MENU_CSS}
+    .component { position: absolute; border: 1px solid #dee2e6; background: #fff; padding: 4px; box-sizing: border-box; border-radius: 6px; max-width: calc(100% - 48px); }
+    .c-html { display: block; overflow: auto; background: transparent; border: none; }
+    .c-input { display: flex; flex-direction: column; gap: 2px; }
+    .c-radio-check { display: flex; flex-direction: column; gap: 0; }
+    .c-table { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+    .c-button { display: flex; justify-content: center; align-items: center; background: transparent; border: none; padding: 4px; }
+    .c-button button { width: 100%; height: 100%; }
     ${GLB_UI_CSS}
   </style>
-  <script>
-    ${USER_MENU_SCRIPT}
-    ${GLB_UI_SCRIPT}
-    
-    function toggleSidebar() {
-      document.querySelector('.sidebar').classList.toggle('closed');
-    }
-    function toggleSubmenu(mIdx) {
-      let isCollapsing = false;
-      const targetContainer = document.getElementById('submenu-' + mIdx)?.parentElement;
-      if (targetContainer && targetContainer.classList.contains('open')) {
-        isCollapsing = true;
-      }
-      
-      // Close all submenus
-      document.querySelectorAll('.menu-item.has-submenu').forEach(el => {
-        el.classList.remove('open');
-      });
+</head>
+<body>
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <nav class="sidebar d-flex flex-column p-3">
+      <div class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom border-secondary">
+        <button class="btn btn-outline-light btn-sm" onclick="document.querySelector('.sidebar').classList.toggle('closed')" title="メニューの開閉">
+          <span class="material-icons">menu</span>
+        </button>
+        <h5 class="sidebar-title text-white fw-bold mb-0 text-truncate">${page.name}</h5>
+      </div>
+      <ul class="sidebar-content nav flex-column gap-1">
+        ${menusHtml}
+      </ul>
+    </nav>
 
-      if (isCollapsing) {
-        showContent('welcome');
-      } else {
-        if (targetContainer) targetContainer.classList.add('open');
-        showContent('welcome');
-      }
-    }
+    <!-- Main Content -->
+    <div class="main-content p-4 position-relative">
+      ${USER_MENU_HTML}
+      ${contentsHtml}
+      <div id="welcome" class="content-pane active d-flex flex-column align-items-center justify-content-center" style="height: 60vh;">
+        <h2 class="text-muted">メニューを選択してください</h2>
+        <p class="text-secondary">左側のメニューから項目を選択すると、ここに内容が表示されます。</p>
+      </div>
+    </div>
+  </div>
+
+  ${BS_JS}
+  <script>
+    ${GLB_UI_SCRIPT}
+
     function showContentDirect(id) {
-      // Menu without submenus: close any open submenus
-      document.querySelectorAll('.menu-item.has-submenu').forEach(el => {
-        el.classList.remove('open');
+      // Close any open collapse submenus
+      document.querySelectorAll('.sidebar .collapse.show').forEach(el => {
+        bootstrap.Collapse.getOrCreateInstance(el).hide();
       });
       showContent(id);
     }
@@ -601,38 +308,21 @@ export function generateMenuPhp(page) {
     function showTab(paneId, tabId) {
       const pane = document.getElementById(paneId);
       if (!pane) return;
-      pane.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-      pane.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      pane.querySelector('[data-tab="' + tabId + '"]').classList.add('active');
-      pane.querySelector('.tab-content-' + tabId).classList.add('active');
+      // Use Bootstrap Tab API
+      const tabEl = pane.querySelector('[data-bs-target="#tab-' + paneId + '-' + tabId + '"]');
+      if (tabEl) {
+        bootstrap.Tab.getOrCreateInstance(tabEl).show();
+      }
       window.dispatchEvent(new CustomEvent('glbTabShown', { detail: { paneId: paneId, tabId: tabId } }));
     }
   </script>
-</head>
-<body>
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <button class="hamburger" onclick="toggleSidebar()" title="メニューの開閉">
-        <span class="material-icons">menu</span>
-      </button>
-      <h2 class="sidebar-title">${page.name}</h2>
-    </div>
-    <div class="sidebar-content">
-      ${menusHtml}
-    </div>
-  </div>
-  <div class="main">
-    ${USER_MENU_HTML}
-    ${contentsHtml}
-    <div id="welcome" class="content-pane active">
-      <h2>メニューを選択してください</h2>
-      <p>左側のメニューから項目を選択すると、ここに内容が表示されます。</p>
-    </div>
-  </div>
 </body>
 </html>`
 }
 
+// ============================================================
+// Tab content generation (Bootstrap 5 tabs)
+// ============================================================
 function generateTabsHtml(targetObj, paneId) {
   if (!targetObj.tabs || targetObj.tabs.length === 0) return ''
 
@@ -641,8 +331,8 @@ function generateTabsHtml(targetObj, paneId) {
     const contents = tab.components.map((comp, idx) => generateComponentHtml(comp, idx)).join('')
     return `
       <div id="${paneId}" class="content-pane">
-        <h3>${targetObj.name}</h3>
-        <div class="tab-content active" style="border:none; height:calc(100% - 60px); background:transparent;">
+        <h3 class="fw-bold mb-3">${targetObj.name}</h3>
+        <div class="tab-canvas">
           ${contents}
         </div>
       </div>
@@ -650,24 +340,35 @@ function generateTabsHtml(targetObj, paneId) {
   }
 
   const tabsNav = targetObj.tabs.map((tab, idx) => `
-    <div class="tab ${idx === 0 ? 'active' : ''}" data-tab="${tab.id}" onclick="showTab('${paneId}', '${tab.id}')">${tab.name}</div>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link ${idx === 0 ? 'active' : ''}" id="btn-${paneId}-${tab.id}" data-bs-toggle="tab" data-bs-target="#tab-${paneId}-${tab.id}" type="button" role="tab">${tab.name}</button>
+    </li>
   `).join('')
 
   const tabsContent = targetObj.tabs.map((tab, idx) => `
-    <div class="tab-content tab-content-${tab.id} ${idx === 0 ? 'active' : ''}">
-      ${tab.components.map((comp, idx) => generateComponentHtml(comp, idx)).join('')}
+    <div class="tab-pane fade ${idx === 0 ? 'show active' : ''}" id="tab-${paneId}-${tab.id}" role="tabpanel">
+      <div class="tab-canvas">
+        ${tab.components.map((comp, ci) => generateComponentHtml(comp, ci)).join('')}
+      </div>
     </div>
   `).join('')
 
   return `
     <div id="${paneId}" class="content-pane">
-      <h3>${targetObj.name}</h3>
-      <div class="tabs">${tabsNav}</div>
-      ${tabsContent}
+      <h3 class="fw-bold mb-3">${targetObj.name}</h3>
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        ${tabsNav}
+      </ul>
+      <div class="tab-content">
+        ${tabsContent}
+      </div>
     </div>
   `
 }
 
+// ============================================================
+// Component HTML generation (Bootstrap 5 classes)
+// ============================================================
 function generateComponentHtml(comp, idx) {
   const zIndex = idx !== undefined ? ` z-index: ${idx + 1};` : ''
   let widthStyle = `${comp.w}px`
@@ -680,44 +381,44 @@ function generateComponentHtml(comp, idx) {
   let outerIdAttr = comp.customId ? ` id="${comp.customId}"` : ''
 
   if (comp.type === 'HTML表示領域') {
-    inner = comp.htmlContent || '<p style="color:var(--text-muted); text-align:center;">右クリックでHTMLを編集</p>'
+    inner = comp.htmlContent || '<p class="text-muted text-center">HTMLコンテンツ</p>'
     cls += ' c-html'
   } else if (comp.type === 'インプット(ラベル付き)') {
     const inputId = comp.customId ? ` id="${comp.customId}"` : ''
-    outerIdAttr = '' // Remove ID from the wrapper
-    inner = `<label${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || 'ラベル'}</label><input type="text"${inputId} placeholder="テキスト入力" />`
+    outerIdAttr = ''
+    inner = `<label class="form-label small fw-semibold text-muted"${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || 'ラベル'}</label><input type="text"${inputId} class="form-control form-control-sm" placeholder="テキスト入力" />`
     cls += ' c-input'
   } else if (comp.type === 'カレンダー(ラベル付き)') {
     const inputId = comp.customId ? ` id="${comp.customId}"` : ''
-    outerIdAttr = '' // Remove ID from the wrapper
-    inner = `<label${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || '日付'}</label><input type="date"${inputId} />`
+    outerIdAttr = ''
+    inner = `<label class="form-label small fw-semibold text-muted"${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || '日付'}</label><input type="date"${inputId} class="form-control form-control-sm" />`
     cls += ' c-input'
   } else if (comp.type === 'セレクトボックス(ラベル付き)') {
     const inputId = comp.customId ? ` id="${comp.customId}"` : ''
-    outerIdAttr = '' // Remove ID from the wrapper
+    outerIdAttr = ''
     const opts = comp.options || ['-- 選択 --'];
     const optsHtml = opts.map(o => `<option ${o === comp.defaultValue ? 'selected' : ''}>${o}</option>`).join('');
-    inner = `<label${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || '選択'}</label><select${inputId}>${optsHtml}</select>`
+    inner = `<label class="form-label small fw-semibold text-muted"${comp.customId ? ` for="${comp.customId}"` : ''}>${comp.label || '選択'}</label><select${inputId} class="form-select form-select-sm">${optsHtml}</select>`
     cls += ' c-input'
   } else if (comp.type === 'ラジオボタン(ラベル付き)') {
     const opts = comp.options || ['ラジオ'];
-    const optsHtml = opts.map(o => `<label><input type="radio" name="${comp.id}" ${o === comp.defaultValue ? 'checked' : ''} /> ${o}</label>`).join('');
-    inner = `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 2px;">${comp.label || 'ラジオ選択'}</label>` + optsHtml;
+    const optsHtml = opts.map(o => `<div class="form-check"><input class="form-check-input" type="radio" name="${comp.id}" ${o === comp.defaultValue ? 'checked' : ''} /><label class="form-check-label small">${o}</label></div>`).join('');
+    inner = `<label class="form-label small fw-semibold text-muted">${comp.label || 'ラジオ選択'}</label>` + optsHtml;
     cls += ' c-radio-check'
   } else if (comp.type === 'チェックボックス(ラベル付き)') {
     const opts = comp.options || ['チェック'];
-    const optsHtml = opts.map(o => `<label><input type="checkbox" name="${comp.id}[]" ${o === comp.defaultValue ? 'checked' : ''} /> ${o}</label>`).join('');
-    inner = `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 2px;">${comp.label || 'チェック選択'}</label>` + optsHtml;
+    const optsHtml = opts.map(o => `<div class="form-check"><input class="form-check-input" type="checkbox" name="${comp.id}[]" ${o === comp.defaultValue ? 'checked' : ''} /><label class="form-check-label small">${o}</label></div>`).join('');
+    inner = `<label class="form-label small fw-semibold text-muted">${comp.label || 'チェック選択'}</label>` + optsHtml;
     cls += ' c-radio-check'
   } else if (comp.type === 'テーブル(ページネーション付)') {
-    const tableLabel = comp.label ? `<label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom: 4px; display: block; text-align: left; width: 100%; padding-left: 8px;">${comp.label}</label>` : ''
+    const tableLabel = comp.label ? `<label class="form-label small fw-semibold text-muted px-2">${comp.label}</label>` : ''
     const columns = comp.columns || ['カラム1', 'カラム2', 'カラム3']
-    const thHtml = columns.map(c => `<th>${c}</th>`).join('')
-    const tdPlaceholder = columns.map(() => `<td>---</td>`).join('')
+    const thHtml = columns.map(c => `<th class="small">${c}</th>`).join('')
+    const tdPlaceholder = columns.map(() => `<td class="small">---</td>`).join('')
     inner = tableLabel + `
-      <div class="c-table-wrap" style="border: 1px solid var(--border); border-radius: 6px; flex: 1; display: flex; flex-direction: column;">
-        <table>
-          <thead>
+      <div class="table-responsive flex-grow-1">
+        <table class="table table-sm table-hover table-bordered mb-0">
+          <thead class="table-light">
             <tr>${thHtml}</tr>
           </thead>
           <tbody>
@@ -726,21 +427,21 @@ function generateComponentHtml(comp, idx) {
           </tbody>
         </table>
       </div>
-      <div class="c-table-footer">
-        <div class="info">全0件中 0-0件を表示</div>
-        <div class="pagination">
-          <button class="page-btn"><span class="material-icons" style="font-size:14px;">chevron_left</span></button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn"><span class="material-icons" style="font-size:14px;">chevron_right</span></button>
-        </div>
-      </div>
+      <nav class="d-flex justify-content-between align-items-center px-2 py-1 border-top bg-light small">
+        <span class="text-muted">全0件中 0-0件を表示</span>
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
+          <li class="page-item active"><a class="page-link" href="#">1</a></li>
+          <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
+        </ul>
+      </nav>
     `
     cls += ' c-table'
   } else if (comp.type === 'ボタン') {
     const btnId = comp.customId ? ` id="${comp.customId}"` : ''
-    outerIdAttr = '' // Remove ID from the wrapper
+    outerIdAttr = ''
     const btnOnClick = comp.customOnClick ? ` onclick="${comp.customOnClick.replace(/"/g, '&quot;')}"` : ''
-    inner = `<button type="button"${btnId}${btnOnClick}>${comp.label || 'ボタン'}</button>`
+    inner = `<button type="button"${btnId}${btnOnClick} class="btn btn-primary w-100 h-100">${comp.label || 'ボタン'}</button>`
     cls += ' c-button'
   } else {
     inner = comp.type
