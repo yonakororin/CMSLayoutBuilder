@@ -100,6 +100,7 @@
     <Transition name="snack">
       <div v-if="snackMessage" class="snackbar">{{ snackMessage }}</div>
     </Transition>
+    <DiffModal ref="diffModalRef" />
   </div>
 </template>
 
@@ -109,13 +110,15 @@ import { store } from './store.js'
 import PortalBuilder from './components/PortalBuilder.vue'
 import MenuBuilder from './components/MenuBuilder.vue'
 import HelpModal from './components/HelpModal.vue'
+import DiffModal from './components/DiffModal.vue'
 import { generatePortalPhp, generateMenuPhp } from './htmlExport.js'
 
 export default {
   name: 'App',
-  components: { PortalBuilder, MenuBuilder, HelpModal },
+  components: { PortalBuilder, MenuBuilder, HelpModal, DiffModal },
   setup() {
     const snackMessage = ref('')
+    const diffModalRef = ref(null)
     const showHelp = ref(false)
 
     function showSnack(msg) {
@@ -146,39 +149,64 @@ export default {
           }
           const dirHandle = store.dirHandle;
 
+          const plannedWrites = []
+
+          // 1. Project JSON
+          const projectJsonStr = store.toJSON()
           const fileHandle = await dirHandle.getFileHandle('cms_project.json', { create: true })
-          const writable = await fileHandle.createWritable()
-          await writable.write(store.toJSON())
-          await writable.close()
+          let oldJson = null
+          try { oldJson = await (await fileHandle.getFile()).text() } catch(e) {}
+          plannedWrites.push({ handle: fileHandle, path: 'cms_project.json', newContent: projectJsonStr, oldContent: oldJson })
 
           try {
-            // Write Portal Pages
+            // 2. Portal Pages
             const portalDir = await dirHandle.getDirectoryHandle('portal', { create: true })
             for (const page of store.portalPages) {
               const php = generatePortalPhp(page)
               const ph = await portalDir.getFileHandle('index.php', { create: true })
-              const pw = await ph.createWritable()
-              await pw.write(php)
-              await pw.close()
+              let oldPhp = null
+              try { oldPhp = await (await ph.getFile()).text() } catch(e) {}
+              plannedWrites.push({ handle: ph, path: 'portal/index.php', newContent: php, oldContent: oldPhp })
             }
 
-            // Write Menu Pages
+            // 3. Menu Pages
             const menuDir = await dirHandle.getDirectoryHandle('menu', { create: true })
             for (const page of store.menuPages) {
               const php = generateMenuPhp(page)
               const pageDir = await menuDir.getDirectoryHandle(page.name, { create: true })
               const mh = await pageDir.getFileHandle('index.php', { create: true })
-              const mw = await mh.createWritable()
-              await mw.write(php)
-              await mw.close()
+              let oldPhp = null
+              try { oldPhp = await (await mh.getFile()).text() } catch(e) {}
+              plannedWrites.push({ handle: mh, path: `menu/${page.name}/index.php`, newContent: php, oldContent: oldPhp })
             }
           } catch (htmlErr) {
             console.error('HTML export warning:', htmlErr)
-            // Continue since JSON was saved
           }
 
+          // Filter writes to only those that changed
+          const diffWrites = plannedWrites.filter(w => w.oldContent !== w.newContent)
+
+          if (diffWrites.length === 0) {
+            window.UI?.showModal?.('メッセージ', '<p>変更されたファイルはありません。すべて最新の状態です。</p>', null, null, 'OK')
+            return
+          }
+
+          // Show Diff Modal and wait for user selection
+          const selectedWrites = await diffModalRef.value.open(diffWrites)
+          if (!selectedWrites || selectedWrites.length === 0) return // Cancelled
+
+          const loadingEl = document.getElementById('glb-loading-overlay')
+          if (loadingEl) window.UI?.showLoading?.("保存中...")
+          
+          for (const w of selectedWrites) {
+            const writer = await w.handle.createWritable()
+            await writer.write(w.newContent)
+            await writer.close()
+          }
+          if (loadingEl) window.UI?.hideLoading?.()
+
           store.projectPath = dirHandle.name
-          showSnack('プロジェクトとHTMLを出力しました: ' + dirHandle.name)
+          showSnack('保存が完了しました: ' + dirHandle.name)
         } else {
           // Fallback: download as file
           const blob = new Blob([store.toJSON()], { type: 'application/json' })
@@ -247,6 +275,7 @@ export default {
       loadProject,
       snackMessage,
       showHelp,
+      diffModalRef,
     }
   },
 }
