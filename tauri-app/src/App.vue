@@ -109,7 +109,7 @@ import { store } from './store.js'
 import PortalBuilder from './components/PortalBuilder.vue'
 import MenuBuilder from './components/MenuBuilder.vue'
 import HelpModal from './components/HelpModal.vue'
-import { generatePortalPhp, generateMenuHtml } from './htmlExport.js'
+import { generatePortalPhp, generateMenuPhp } from './htmlExport.js'
 
 export default {
   name: 'App',
@@ -165,11 +165,11 @@ export default {
             // Write Menu Pages
             const menuDir = await dirHandle.getDirectoryHandle('menu', { create: true })
             for (const page of store.menuPages) {
-              const html = generateMenuHtml(page)
+              const php = generateMenuPhp(page)
               const pageDir = await menuDir.getDirectoryHandle(page.name, { create: true })
-              const mh = await pageDir.getFileHandle('index.html', { create: true })
+              const mh = await pageDir.getFileHandle('index.php', { create: true })
               const mw = await mh.createWritable()
-              await mw.write(html)
+              await mw.write(php)
               await mw.close()
             }
           } catch (htmlErr) {

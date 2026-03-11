@@ -319,7 +319,7 @@ export function generatePortalPhp(page) {
 </html>`
 }
 
-export function generateMenuHtml(page) {
+export function generateMenuPhp(page) {
   let menusHtml = page.menus.map((menu, mIdx) => {
     if (menu.submenus.length > 0) {
       return `
@@ -352,7 +352,8 @@ export function generateMenuHtml(page) {
     }
   }).join('')
 
-  return `<!DOCTYPE html>
+  return `<?php session_start(); ?>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
