@@ -27,7 +27,11 @@
         </div>
 
         <!-- Cards (drag & drop) -->
-        <div class="cards-container">
+        <div
+          class="cards-container"
+          @dragover.prevent="onContainerDragOver($event, cat)"
+          @drop.prevent="onContainerDrop($event, cat)"
+        >
           <div
             v-for="(card, idx) in cat.cards"
             :key="card.id"
@@ -40,9 +44,9 @@
             :draggable="true"
             @dragstart="onDragStart($event, cat, idx)"
             @dragend="onDragEnd"
-            @dragover.prevent="onDragOver($event, cat, idx)"
+            @dragover.prevent.stop="onDragOver($event, cat, idx)"
             @dragleave="onDragLeave"
-            @drop.prevent="onDrop($event, cat, idx)"
+            @drop.prevent.stop="onDrop($event, cat, idx)"
           >
             <div class="card" @click="openCardEditor(card)">
               <span class="material-icons card-icon">{{ card.icon }}</span>
@@ -51,6 +55,25 @@
             <button class="btn-icon danger card-delete" @click.stop="store.removeCard(page.id, cat.id, card.id)">
               <span class="material-icons xs">close</span>
             </button>
+            <!-- Move buttons -->
+            <div class="card-move-buttons">
+              <button
+                v-if="idx > 0"
+                class="btn-icon card-move-btn"
+                @click.stop="moveCardLeft(cat, idx)"
+                title="左へ移動"
+              >
+                <span class="material-icons xs">chevron_left</span>
+              </button>
+              <button
+                v-if="idx < cat.cards.length - 1"
+                class="btn-icon card-move-btn"
+                @click.stop="moveCardRight(cat, idx)"
+                title="右へ移動"
+              >
+                <span class="material-icons xs">chevron_right</span>
+              </button>
+            </div>
           </div>
 
           <!-- Drop zone at the end -->
@@ -58,18 +81,18 @@
             v-if="cat.cards.length > 0"
             class="card-drop-end"
             :class="{ 'drag-over-end': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === cat.cards.length }"
-            @dragover.prevent="onDragOverEnd($event, cat)"
+            @dragover.prevent.stop="onDragOverEnd($event, cat)"
             @dragleave="onDragLeave"
-            @drop.prevent="onDropEnd($event, cat)"
+            @drop.prevent.stop="onDropEnd($event, cat)"
           ></div>
 
           <!-- Empty state -->
           <div
             v-if="cat.cards.length === 0"
             class="cards-empty"
-            @dragover.prevent="onDragOverEnd($event, cat)"
+            @dragover.prevent.stop="onDragOverEnd($event, cat)"
             @dragleave="onDragLeave"
-            @drop.prevent="onDropEnd($event, cat)"
+            @drop.prevent.stop="onDropEnd($event, cat)"
             :class="{ 'drag-over-end': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === 0 }"
           >
             カードをここにドロップ、または「＋カード」で追加
@@ -136,12 +159,12 @@ export default {
     const showIconPicker = ref(false)
     const dragInfo = ref(null)      // { catId, idx }
     const dragOverInfo = ref(null)  // { catId, idx, side }
+    let justDragged = false
 
     function openCardEditor(card) {
-      // Only open if not just finished dragging
-      if (!dragInfo.value) {
-        editingCard.value = card
-      }
+      // Prevent opening editor right after a drag
+      if (justDragged) return
+      editingCard.value = card
     }
 
     function onIconSelect(icon) {
@@ -151,22 +174,33 @@ export default {
       showIconPicker.value = false
     }
 
+    // --- Arrow-button move ---
+    function moveCardLeft(cat, idx) {
+      if (idx <= 0) return
+      store.moveCard(props.page.id, cat.id, idx, cat.id, idx - 1)
+    }
+    function moveCardRight(cat, idx) {
+      if (idx >= cat.cards.length - 1) return
+      store.moveCard(props.page.id, cat.id, idx, cat.id, idx + 2)
+    }
+
     // --- Drag & Drop ---
     function onDragStart(e, cat, idx) {
       dragInfo.value = { catId: cat.id, idx }
       e.dataTransfer.effectAllowed = 'move'
-      // Set minimal drag image
       e.dataTransfer.setData('text/plain', cat.id + ':' + idx)
     }
 
     function onDragEnd() {
+      // Set justDragged flag to suppress click after drag
+      justDragged = true
+      setTimeout(() => { justDragged = false }, 100)
       dragInfo.value = null
       dragOverInfo.value = null
     }
 
     function onDragOver(e, cat, idx) {
       if (!dragInfo.value) return
-      // Determine if mouse is on left or right half of card
       const rect = e.currentTarget.getBoundingClientRect()
       const midX = rect.left + rect.width / 2
       const side = e.clientX < midX ? 'left' : 'right'
@@ -175,6 +209,13 @@ export default {
 
     function onDragOverEnd(e, cat) {
       if (!dragInfo.value) return
+      dragOverInfo.value = { catId: cat.id, idx: cat.cards.length, side: 'left' }
+    }
+
+    function onContainerDragOver(e, cat) {
+      if (!dragInfo.value) return
+      // Only update if we're not already over a specific card
+      // (card-level handlers use .stop so this only fires in gaps)
       dragOverInfo.value = { catId: cat.id, idx: cat.cards.length, side: 'left' }
     }
 
@@ -187,21 +228,7 @@ export default {
       const srcCatId = dragInfo.value.catId
       const srcIdx = dragInfo.value.idx
 
-      // Find source category
-      const srcCat = props.page.categories.find(c => c.id === srcCatId)
-      if (!srcCat) return
-
-      // Remove card from source
-      const [card] = srcCat.cards.splice(srcIdx, 1)
-
-      // Adjust target index if same category and source was before target
-      let insertIdx = targetIdx
-      if (srcCat.id === targetCat.id && srcIdx < targetIdx) {
-        insertIdx = Math.max(0, insertIdx - 1)
-      }
-
-      // Insert card at target
-      targetCat.cards.splice(insertIdx, 0, card)
+      store.moveCard(props.page.id, srcCatId, srcIdx, targetCat.id, targetIdx)
 
       dragInfo.value = null
       dragOverInfo.value = null
@@ -218,10 +245,17 @@ export default {
       performDrop(cat, cat.cards.length)
     }
 
+    function onContainerDrop(e, cat) {
+      // Fires when drop lands in the gap between cards
+      performDrop(cat, cat.cards.length)
+    }
+
     return {
       store, editingCard, showIconPicker, dragInfo, dragOverInfo,
       openCardEditor, onIconSelect,
-      onDragStart, onDragEnd, onDragOver, onDragOverEnd, onDragLeave, onDrop, onDropEnd,
+      moveCardLeft, moveCardRight,
+      onDragStart, onDragEnd, onDragOver, onDragOverEnd, onDragLeave,
+      onDrop, onDropEnd, onContainerDragOver, onContainerDrop,
     }
   },
 }
@@ -307,6 +341,35 @@ export default {
 }
 .card-wrapper:hover .card-delete {
   opacity: 1;
+}
+.card-move-buttons {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+.card-wrapper:hover .card-move-buttons {
+  opacity: 1;
+  pointer-events: auto;
+}
+.card-move-btn {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 50% !important;
+  width: 20px;
+  height: 20px;
+  padding: 2px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.card-move-btn:hover {
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
 }
 .card {
   width: 110px;

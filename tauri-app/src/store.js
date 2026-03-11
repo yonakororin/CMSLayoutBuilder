@@ -178,6 +178,21 @@ export const store = reactive({
             cat.cards = cat.cards.filter(c => c.id !== cardId)
         }
     },
+    moveCard(pageId, srcCatId, srcIdx, dstCatId, dstIdx) {
+        const page = this.getPortalPage(pageId)
+        if (!page) return
+        const srcCat = page.categories.find(c => c.id === srcCatId)
+        const dstCat = page.categories.find(c => c.id === dstCatId)
+        if (!srcCat || !dstCat) return
+        if (srcIdx < 0 || srcIdx >= srcCat.cards.length) return
+        const [card] = srcCat.cards.splice(srcIdx, 1)
+        // Adjust index when moving within the same category
+        let insertIdx = dstIdx
+        if (srcCatId === dstCatId && srcIdx < dstIdx) {
+            insertIdx = Math.max(0, insertIdx - 1)
+        }
+        dstCat.cards.splice(insertIdx, 0, card)
+    },
 
     // --- Menu pages ---
     addMenuPage() {
