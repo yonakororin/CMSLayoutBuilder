@@ -153,18 +153,17 @@ export default {
 
           try {
             // Write Portal Pages
-            const portalDir = await dirHandle.getDirectoryHandle('ポータルページ', { create: true })
+            const portalDir = await dirHandle.getDirectoryHandle('portal', { create: true })
             for (const page of store.portalPages) {
               const php = generatePortalPhp(page)
-              const pageDir = await portalDir.getDirectoryHandle(page.name, { create: true })
-              const ph = await pageDir.getFileHandle('index.php', { create: true })
+              const ph = await portalDir.getFileHandle('index.php', { create: true })
               const pw = await ph.createWritable()
               await pw.write(php)
               await pw.close()
             }
 
             // Write Menu Pages
-            const menuDir = await dirHandle.getDirectoryHandle('メニューページ', { create: true })
+            const menuDir = await dirHandle.getDirectoryHandle('menu', { create: true })
             for (const page of store.menuPages) {
               const html = generateMenuHtml(page)
               const pageDir = await menuDir.getDirectoryHandle(page.name, { create: true })
