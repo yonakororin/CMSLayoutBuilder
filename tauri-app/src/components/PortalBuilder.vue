@@ -1,5 +1,5 @@
 <template>
-  <div class="portal-builder">
+  <div class="portal-builder" ref="builderRef">
     <!-- Title -->
     <div class="portal-header">
       <InlineEdit
@@ -26,27 +26,19 @@
           </div>
         </div>
 
-        <!-- Cards (drag & drop) -->
-        <div
-          class="cards-container"
-          @dragover.prevent="onContainerDragOver($event, cat)"
-          @drop.prevent="onContainerDrop($event, cat)"
-        >
+        <!-- Cards -->
+        <div class="cards-container" :data-cat-id="cat.id">
           <div
             v-for="(card, idx) in cat.cards"
             :key="card.id"
             class="card-wrapper"
+            :data-card-idx="idx"
             :class="{
-              'drag-over-left': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === idx && dragOverInfo?.side === 'left',
-              'drag-over-right': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === idx && dragOverInfo?.side === 'right',
-              dragging: dragInfo?.catId === cat.id && dragInfo?.idx === idx
+              'drag-over-left': dropTarget?.catId === cat.id && dropTarget?.idx === idx && dropTarget?.side === 'left',
+              'drag-over-right': dropTarget?.catId === cat.id && dropTarget?.idx === idx && dropTarget?.side === 'right',
+              dragging: dragging?.catId === cat.id && dragging?.cardId === card.id
             }"
-            :draggable="true"
-            @dragstart="onDragStart($event, cat, idx)"
-            @dragend="onDragEnd"
-            @dragover.prevent.stop="onDragOver($event, cat, idx)"
-            @dragleave="onDragLeave"
-            @drop.prevent.stop="onDrop($event, cat, idx)"
+            @mousedown.left="onGripStart($event, cat, card, idx)"
           >
             <div class="card" @click="openCardEditor(card)">
               <span class="material-icons card-icon">{{ card.icon }}</span>
@@ -76,26 +68,14 @@
             </div>
           </div>
 
-          <!-- Drop zone at the end -->
-          <div
-            v-if="cat.cards.length > 0"
-            class="card-drop-end"
-            :class="{ 'drag-over-end': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === cat.cards.length }"
-            @dragover.prevent.stop="onDragOverEnd($event, cat)"
-            @dragleave="onDragLeave"
-            @drop.prevent.stop="onDropEnd($event, cat)"
-          ></div>
-
           <!-- Empty state -->
           <div
             v-if="cat.cards.length === 0"
             class="cards-empty"
-            @dragover.prevent.stop="onDragOverEnd($event, cat)"
-            @dragleave="onDragLeave"
-            @drop.prevent.stop="onDropEnd($event, cat)"
-            :class="{ 'drag-over-end': dragOverInfo?.catId === cat.id && dragOverInfo?.idx === 0 }"
+            :data-cat-id="cat.id"
+            :class="{ 'drag-over-end': dropTarget?.catId === cat.id && dropTarget?.idx === 0 }"
           >
-            カードをここにドロップ、または「＋カード」で追加
+            「＋カード」でカードを追加
           </div>
         </div>
       </div>
@@ -104,6 +84,14 @@
     <button class="btn btn-primary" @click="store.addCategory(page.id)" style="margin-top:12px;">
       <span class="material-icons xs">add</span> カテゴリを追加
     </button>
+
+    <!-- Drag ghost -->
+    <div v-if="dragging" class="drag-ghost" :style="ghostStyle">
+      <div class="card">
+        <span class="material-icons card-icon">{{ dragging.card.icon }}</span>
+        <span class="card-title truncate">{{ dragging.card.title }}</span>
+      </div>
+    </div>
 
     <!-- Card Editor Modal -->
     <div v-if="editingCard" class="modal-overlay" @click.self="editingCard = null">
@@ -143,7 +131,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, reactive, onUnmounted } from 'vue'
 import { store } from '../store.js'
 import InlineEdit from './InlineEdit.vue'
 import IconPicker from './IconPicker.vue'
@@ -157,13 +145,19 @@ export default {
   setup(props) {
     const editingCard = ref(null)
     const showIconPicker = ref(false)
-    const dragInfo = ref(null)      // { catId, idx }
-    const dragOverInfo = ref(null)  // { catId, idx, side }
-    let justDragged = false
+    const builderRef = ref(null)
+
+    // Drag state
+    const dragging = ref(null)   // { catId, cardId, card, startX, startY }
+    const dropTarget = ref(null) // { catId, idx, side }
+    const ghostPos = reactive({ x: 0, y: 0 })
+    const ghostStyle = ref({})
+    let isDragging = false
+    let suppressClick = false
+    const DRAG_THRESHOLD = 5 // pixels before drag starts
 
     function openCardEditor(card) {
-      // Prevent opening editor right after a drag
-      if (justDragged) return
+      if (suppressClick) return
       editingCard.value = card
     }
 
@@ -184,78 +178,137 @@ export default {
       store.moveCard(props.page.id, cat.id, idx, cat.id, idx + 2)
     }
 
-    // --- Drag & Drop ---
-    function onDragStart(e, cat, idx) {
-      dragInfo.value = { catId: cat.id, idx }
-      e.dataTransfer.effectAllowed = 'move'
-      e.dataTransfer.setData('text/plain', cat.id + ':' + idx)
+    // --- Custom mouse-based drag & drop ---
+    let pendingDrag = null // { catId, cardId, card, idx, startX, startY }
+
+    function onGripStart(e, cat, card, idx) {
+      // Don't start drag from buttons
+      if (e.target.closest('.card-delete') || e.target.closest('.card-move-btn')) return
+
+      pendingDrag = {
+        catId: cat.id,
+        cardId: card.id,
+        card: card,
+        idx: idx,
+        startX: e.clientX,
+        startY: e.clientY,
+      }
+
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', onMouseUp)
+      e.preventDefault()
     }
 
-    function onDragEnd() {
-      // Set justDragged flag to suppress click after drag
-      justDragged = true
-      setTimeout(() => { justDragged = false }, 100)
-      dragInfo.value = null
-      dragOverInfo.value = null
+    function onMouseMove(e) {
+      if (!pendingDrag && !isDragging) return
+
+      if (pendingDrag && !isDragging) {
+        const dx = e.clientX - pendingDrag.startX
+        const dy = e.clientY - pendingDrag.startY
+        if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return
+
+        // Start drag
+        isDragging = true
+        suppressClick = true
+        dragging.value = {
+          catId: pendingDrag.catId,
+          cardId: pendingDrag.cardId,
+          card: pendingDrag.card,
+          idx: pendingDrag.idx,
+        }
+        pendingDrag = null
+      }
+
+      if (isDragging) {
+        ghostPos.x = e.clientX
+        ghostPos.y = e.clientY
+        ghostStyle.value = {
+          left: (e.clientX + 8) + 'px',
+          top: (e.clientY + 8) + 'px',
+        }
+
+        // Hit-test: find which card we're over
+        updateDropTarget(e.clientX, e.clientY)
+      }
     }
 
-    function onDragOver(e, cat, idx) {
-      if (!dragInfo.value) return
-      const rect = e.currentTarget.getBoundingClientRect()
-      const midX = rect.left + rect.width / 2
-      const side = e.clientX < midX ? 'left' : 'right'
-      dragOverInfo.value = { catId: cat.id, idx, side }
+    function updateDropTarget(mx, my) {
+      if (!builderRef.value) return
+
+      const containers = builderRef.value.querySelectorAll('.cards-container')
+      let found = false
+
+      for (const container of containers) {
+        const catId = container.dataset.catId
+        const wrappers = container.querySelectorAll('.card-wrapper')
+
+        for (let i = 0; i < wrappers.length; i++) {
+          const rect = wrappers[i].getBoundingClientRect()
+          if (mx >= rect.left && mx <= rect.right && my >= rect.top && my <= rect.bottom) {
+            const midX = rect.left + rect.width / 2
+            const side = mx < midX ? 'left' : 'right'
+            dropTarget.value = { catId, idx: i, side }
+            found = true
+            break
+          }
+        }
+
+        if (!found) {
+          // Check if mouse is inside the container itself (for drop at end)
+          const containerRect = container.getBoundingClientRect()
+          if (mx >= containerRect.left && mx <= containerRect.right &&
+              my >= containerRect.top && my <= containerRect.bottom) {
+            const cat = props.page.categories.find(c => c.id === catId)
+            if (cat) {
+              dropTarget.value = { catId, idx: cat.cards.length, side: 'left' }
+              found = true
+            }
+          }
+        }
+
+        if (found) break
+      }
+
+      if (!found) {
+        dropTarget.value = null
+      }
     }
 
-    function onDragOverEnd(e, cat) {
-      if (!dragInfo.value) return
-      dragOverInfo.value = { catId: cat.id, idx: cat.cards.length, side: 'left' }
+    function onMouseUp(e) {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+
+      if (isDragging && dragging.value && dropTarget.value) {
+        // Perform the drop
+        const srcCatId = dragging.value.catId
+        const srcIdx = dragging.value.idx
+        let dstIdx = dropTarget.value.idx
+        if (dropTarget.value.side === 'right') {
+          dstIdx = dropTarget.value.idx + 1
+        }
+        store.moveCard(props.page.id, srcCatId, srcIdx, dropTarget.value.catId, dstIdx)
+      }
+
+      dragging.value = null
+      dropTarget.value = null
+      pendingDrag = null
+      isDragging = false
+
+      // Suppress the click that follows mouseup
+      setTimeout(() => { suppressClick = false }, 50)
     }
 
-    function onContainerDragOver(e, cat) {
-      if (!dragInfo.value) return
-      // Only update if we're not already over a specific card
-      // (card-level handlers use .stop so this only fires in gaps)
-      dragOverInfo.value = { catId: cat.id, idx: cat.cards.length, side: 'left' }
-    }
-
-    function onDragLeave() {
-      // Will be re-set on next dragover
-    }
-
-    function performDrop(targetCat, targetIdx) {
-      if (!dragInfo.value) return
-      const srcCatId = dragInfo.value.catId
-      const srcIdx = dragInfo.value.idx
-
-      store.moveCard(props.page.id, srcCatId, srcIdx, targetCat.id, targetIdx)
-
-      dragInfo.value = null
-      dragOverInfo.value = null
-    }
-
-    function onDrop(e, cat, idx) {
-      const info = dragOverInfo.value
-      if (!info) return performDrop(cat, idx)
-      const insertIdx = info.side === 'right' ? idx + 1 : idx
-      performDrop(cat, insertIdx)
-    }
-
-    function onDropEnd(e, cat) {
-      performDrop(cat, cat.cards.length)
-    }
-
-    function onContainerDrop(e, cat) {
-      // Fires when drop lands in the gap between cards
-      performDrop(cat, cat.cards.length)
-    }
+    onUnmounted(() => {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    })
 
     return {
-      store, editingCard, showIconPicker, dragInfo, dragOverInfo,
+      store, editingCard, showIconPicker, builderRef,
+      dragging, dropTarget, ghostStyle,
       openCardEditor, onIconSelect,
       moveCardLeft, moveCardRight,
-      onDragStart, onDragEnd, onDragOver, onDragOverEnd, onDragLeave,
-      onDrop, onDropEnd, onContainerDragOver, onContainerDrop,
+      onGripStart,
     }
   },
 }
@@ -266,6 +319,7 @@ export default {
   padding: 8px;
   overflow-y: auto;
   height: 100%;
+  position: relative;
 }
 .portal-header {
   padding: 8px 12px;
@@ -309,6 +363,7 @@ export default {
   gap: 8px;
   padding: 12px;
   align-items: flex-start;
+  min-height: 60px;
 }
 .card-wrapper {
   display: flex;
@@ -320,6 +375,7 @@ export default {
   transition: transform 0.15s ease, opacity 0.15s ease;
   border-left: 3px solid transparent;
   border-right: 3px solid transparent;
+  user-select: none;
 }
 .card-wrapper:active { cursor: grabbing; }
 .card-wrapper.dragging {
@@ -400,17 +456,6 @@ export default {
   max-width: 110px;
   text-align: center;
 }
-.card-drop-end {
-  width: 20px;
-  min-height: 80px;
-  transition: all 0.15s ease;
-  border-radius: var(--radius-sm);
-}
-.card-drop-end.drag-over-end {
-  width: 40px;
-  background: var(--accent-light);
-  border: 2px dashed var(--accent);
-}
 .cards-empty {
   color: var(--text-muted);
   font-size: 13px;
@@ -425,6 +470,17 @@ export default {
   background: var(--accent-light);
   color: var(--accent);
 }
+
+/* Drag ghost - floating copy that follows the mouse */
+.drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.85;
+  transform: rotate(3deg) scale(1.05);
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));
+}
+
 .field-label {
   display: block;
   font-size: 12px;
