@@ -116,9 +116,9 @@
 
     <!-- HTML Editor Modal -->
     <div v-show="htmlEditor.show" class="modal-overlay" @mousedown.prevent.stop="closeHtmlEditor">
-      <div class="modal-content flex flex-col gap-3" style="width: 700px; max-width: 90vw; pointer-events: auto; padding: 16px;" @mousedown.stop>
-        <div class="flex items-center justify-between">
-          <h3 style="margin: 0;">HTML / JS コード編集</h3>
+      <div class="modal-content flex flex-col gap-3" :style="{ position: 'absolute', left: modalPositions.htmlEditor.x + 'px', top: modalPositions.htmlEditor.y + 'px', margin: 0, width: '700px', height: '500px', minWidth: '400px', minHeight: '300px', maxWidth: '90vw', maxHeight: '90vh', pointerEvents: 'auto', padding: '16px', resize: 'both', overflow: 'hidden', display: 'flex', flexDirection: 'column' }" @mousedown.stop>
+        <div class="flex items-center justify-between" style="flex-shrink: 0; cursor: grab;" @pointerdown="startModalDrag($event, 'htmlEditor')">
+          <h3 style="margin: 0; pointer-events: none;">HTML / JS コード編集</h3>
           <div class="flex items-center gap-3">
             <div class="flex items-center gap-2">
               <label style="font-size: 12px; color: var(--text-muted);">追加:</label>
@@ -156,8 +156,8 @@
             </div>
           </div>
         </div>
-        <div ref="aceContainerRef" style="width: 100%; height: 350px; border-radius: 6px; border: 1px solid var(--border);"></div>
-        <div class="modal-actions" style="margin-top: 8px;">
+        <div ref="aceContainerRef" style="flex: 1; min-height: 100px; width: 100%; border-radius: 6px; border: 1px solid var(--border);"></div>
+        <div class="modal-actions" style="margin-top: 8px; flex-shrink: 0;">
           <button class="btn btn-ghost" @click="closeHtmlEditor">キャンセル</button>
           <button class="btn btn-primary" @click="saveHtmlEditor">保存</button>
         </div>
@@ -166,8 +166,8 @@
 
     <!-- Component Settings Modal -->
     <div v-if="settingsEditor.show" class="modal-overlay" @mousedown.prevent.stop="closeSettingsEditor">
-      <div class="modal-content flex flex-col gap-3" style="width: 400px; max-width: 90vw; pointer-events: auto;" @mousedown.stop>
-        <h3 style="margin:0 0 8px 0;">コンポーネント設定</h3>
+      <div class="modal-content flex flex-col gap-3" :style="{ position: 'absolute', left: modalPositions.settingsEditor.x + 'px', top: modalPositions.settingsEditor.y + 'px', margin: 0, width: '400px', maxWidth: '90vw', pointerEvents: 'auto' }" @mousedown.stop>
+        <h3 style="margin:0 0 8px 0; cursor: grab;" @pointerdown="startModalDrag($event, 'settingsEditor')">コンポーネント設定</h3>
         
         <div class="flex flex-col gap-1">
           <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">ID (任意)</label>
@@ -213,8 +213,8 @@
 
     <!-- Snippet Manager Modal -->
     <div v-if="snippetManager.show" class="modal-overlay" @mousedown.prevent.stop="closeSnippetManager">
-      <div class="modal-content flex flex-col gap-3" style="width: 500px; max-width: 90vw; pointer-events: auto;" @mousedown.stop>
-        <h3 style="margin:0 0 8px 0;">カスタムスニペット管理</h3>
+      <div class="modal-content flex flex-col gap-3" :style="{ position: 'absolute', left: modalPositions.snippetManager.x + 'px', top: modalPositions.snippetManager.y + 'px', margin: 0, width: '500px', maxWidth: '90vw', pointerEvents: 'auto' }" @mousedown.stop>
+        <h3 style="margin:0 0 8px 0; cursor: grab;" @pointerdown="startModalDrag($event, 'snippetManager')">カスタムスニペット管理</h3>
         <p style="font-size: 12px; color: var(--text-muted); margin-top: -8px;">
           よく使うコード片を登録できます。（このブラウザ/PCにのみ保存されます）
         </p>
@@ -252,7 +252,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, nextTick, shallowRef } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, shallowRef, watch } from 'vue'
 import { store } from '../store.js'
 import InlineEdit from './InlineEdit.vue'
 
@@ -289,10 +289,19 @@ export default {
       tempColumns: '', hasColumns: false
     })
 
+    // Modal dragging state
+    const modalPositions = ref({
+      htmlEditor: { x: 0, y: 0 },
+      settingsEditor: { x: 0, y: 0 },
+      snippetManager: { x: 0, y: 0 }
+    })
+    let modalDragState = null
+
     // Drag state
     let dragState = null
     // Resize state
     let resizeState = null
+    let resizeObserver = null
 
     function snap(v) {
       return Math.round(v / 5) * 5
@@ -339,6 +348,10 @@ export default {
       htmlEditor.value.comp = comp
       htmlEditor.value.content = comp.htmlContent || ''
       htmlEditor.value.show = true
+      modalPositions.value.htmlEditor = { 
+        x: Math.max(0, (window.innerWidth - 700) / 2), 
+        y: Math.max(0, (window.innerHeight - 500) / 2) 
+      }
       
       nextTick(() => {
         if (aceContainerRef.value) {
@@ -474,6 +487,10 @@ export default {
 
     function openSnippetManager() {
       snippetManager.value.show = true
+      modalPositions.value.snippetManager = { 
+        x: Math.max(0, (window.innerWidth - 500) / 2), 
+        y: Math.max(0, (window.innerHeight - 400) / 2) 
+      }
     }
 
     function closeSnippetManager() {
@@ -528,6 +545,20 @@ export default {
       e.target.setPointerCapture(e.pointerId)
     }
 
+    function startModalDrag(e, modalName) {
+      // Don't drag if clicking buttons, inputs, selects, or textareas inside the header
+      if (['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      
+      modalDragState = {
+        name: modalName,
+        startX: e.clientX,
+        startY: e.clientY,
+        origX: modalPositions.value[modalName].x,
+        origY: modalPositions.value[modalName].y,
+      }
+      e.target.setPointerCapture(e.pointerId)
+    }
+
     // --- Table column helpers ---
     function getColumns(comp) {
       if (!comp.columns) comp.columns = ['カラム1', 'カラム2', 'カラム3']
@@ -559,15 +590,26 @@ export default {
         resizeState.comp.w = Math.max(40, snap(resizeState.origW + dx))
         resizeState.comp.h = Math.max(30, snap(resizeState.origH + dy))
       }
+      if (modalDragState) {
+        const dx = e.clientX - modalDragState.startX
+        const dy = e.clientY - modalDragState.startY
+        modalPositions.value[modalDragState.name].x = modalDragState.origX + dx
+        modalPositions.value[modalDragState.name].y = modalDragState.origY + dy
+      }
     }
 
     function onPointerUp() {
       dragState = null
       resizeState = null
+      modalDragState = null
     }
 
     function openSettingsEditor(comp) {
       if (!comp) return;
+      modalPositions.value.settingsEditor = { 
+        x: Math.max(0, (window.innerWidth - 400) / 2), 
+        y: Math.max(0, (window.innerHeight - 400) / 2) 
+      }
       settingsEditor.value.comp = comp;
       settingsEditor.value.tempId = comp.customId || '';
       settingsEditor.value.tempClass = comp.customClass || '';
@@ -645,6 +687,16 @@ export default {
       window.addEventListener('pointerup', onPointerUp)
       window.addEventListener('click', closeContextMenu)
       window.addEventListener('contextmenu', closeContextMenu)
+
+      // Setup ResizeObserver for Ace editor
+      resizeObserver = new ResizeObserver(() => {
+        if (htmlEditor.value.show && aceEditorInstance.value) {
+          aceEditorInstance.value.resize()
+        }
+      })
+      if (aceContainerRef.value) {
+        resizeObserver.observe(aceContainerRef.value)
+      }
     })
 
     onUnmounted(() => {
@@ -652,10 +704,27 @@ export default {
       window.removeEventListener('pointerup', onPointerUp)
       window.removeEventListener('click', closeContextMenu)
       window.removeEventListener('contextmenu', closeContextMenu)
+      
+      if (resizeObserver) {
+        resizeObserver.disconnect()
+        resizeObserver = null
+      }
+      if (aceEditorInstance.value) {
+        aceEditorInstance.value.destroy()
+        aceEditorInstance.value = null
+      }
+    })
+
+    // Need to reconnect observer when ref becomes available possibly
+    watch(() => aceContainerRef.value, (newVal) => {
+      if (newVal && resizeObserver) {
+        resizeObserver.disconnect()
+        resizeObserver.observe(newVal)
+      }
     })
 
     return { 
-      canvasRef, handlePointerDown, startResize, 
+      canvasRef, handlePointerDown, startResize, startModalDrag, modalPositions,
       contextMenu, showContextMenu, handleContextMenuOption,
       htmlEditor, closeHtmlEditor, saveHtmlEditor, aceContainerRef, updateKeybinding, insertSnippet,
       settingsEditor, openSettingsEditor, closeSettingsEditor, saveSettingsEditor,

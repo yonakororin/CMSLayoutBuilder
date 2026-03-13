@@ -200,6 +200,7 @@ export const store = reactive({
             id: generateId(),
             name: '新しいメニューページ',
             menus: [],
+            isNew: true,
         })
     },
     removeMenuPage(pageId) {
@@ -365,4 +366,36 @@ export const store = reactive({
             console.error('Failed to parse project data:', e)
         }
     },
+
+    syncFromFileSystem(portalFolders, menuFolders) {
+        let changed = false;
+        // Sync Portal Pages
+        portalFolders.forEach(folderName => {
+            const exists = this.portalPages.some(p => p.name === folderName)
+            if (!exists) {
+                this.portalPages.push({
+                    id: generateId(),
+                    name: folderName,
+                    categories: [],
+                    discovered: true
+                })
+                changed = true;
+            }
+        })
+
+        // Sync Menu Pages
+        menuFolders.forEach(folderName => {
+            const exists = this.menuPages.some(m => m.name === folderName)
+            if (!exists) {
+                this.menuPages.push({
+                    id: generateId(),
+                    name: folderName,
+                    menus: [],
+                    discovered: true
+                })
+                changed = true;
+            }
+        })
+        return changed;
+    }
 })

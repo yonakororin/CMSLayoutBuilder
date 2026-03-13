@@ -185,10 +185,10 @@ export function generatePortalPhp(page) {
 </html>`
 }
 
-// ============================================================
 // Menu Page Export (Bootstrap 5 + PHP)
 // ============================================================
-export function generateMenuPhp(page) {
+export function generateMenuPhp(page, options = {}) {
+  const includeMainJs = options.includeMainJs || false;
   let menusHtml = page.menus.map((menu, mIdx) => {
     if (menu.submenus.length > 0) {
       return `
@@ -318,6 +318,7 @@ export function generateMenuPhp(page) {
       }
     });
   </script>
+  ${includeMainJs ? '<script src="js/main.js"></script>' : ''}
 </body>
 </html>`
 }

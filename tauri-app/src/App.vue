@@ -105,8 +105,9 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { store } from './store.js'
+import { storeHandle, loadHandle } from './db.js'
 import PortalBuilder from './components/PortalBuilder.vue'
 import MenuBuilder from './components/MenuBuilder.vue'
 import HelpModal from './components/HelpModal.vue'
@@ -120,6 +121,44 @@ export default {
     const snackMessage = ref('')
     const diffModalRef = ref(null)
     const showHelp = ref(false)
+
+      onMounted(async () => {
+        try {
+          const savedHandle = await loadHandle('last_project')
+          if (savedHandle) {
+            const permission = await savedHandle.queryPermission({ mode: 'readwrite' })
+            if (permission === 'granted') {
+              await loadProject(savedHandle)
+              await syncProjectWithFileSystem(savedHandle)
+            }
+          }
+        } catch (e) {
+          console.error('Auto-load fail:', e)
+        }
+      })
+
+      async function syncProjectWithFileSystem(dirHandle) {
+        // Scan for manual folders (Discovery)
+        const portalNames = []
+        const menuNames = []
+        try {
+          const portalDir = await dirHandle.getDirectoryHandle('portal')
+          for await (const entry of portalDir.values()) {
+            if (entry.kind === 'directory') portalNames.push(entry.name)
+          }
+        } catch(e) {}
+        try {
+          const menuDir = await dirHandle.getDirectoryHandle('menu')
+          for await (const entry of menuDir.values()) {
+            if (entry.kind === 'directory') menuNames.push(entry.name)
+          }
+        } catch(e) {}
+
+        const changed = store.syncFromFileSystem(portalNames, menuNames)
+        console.log('Discovery sync completed, changed:', changed)
+        return changed
+      }
+
 
     function showSnack(msg) {
       snackMessage.value = msg
@@ -172,12 +211,28 @@ export default {
             // 3. Menu Pages
             const menuDir = await dirHandle.getDirectoryHandle('menu', { create: true })
             for (const page of store.menuPages) {
-              const php = generateMenuPhp(page)
+              const options = { includeMainJs: page.isNew };
+              const php = generateMenuPhp(page, options)
               const pageDir = await menuDir.getDirectoryHandle(page.name, { create: true })
               const mh = await pageDir.getFileHandle('index.php', { create: true })
               let oldPhp = null
               try { oldPhp = await (await mh.getFile()).text() } catch(e) {}
               plannedWrites.push({ handle: mh, path: `menu/${page.name}/index.php`, newContent: php, oldContent: oldPhp })
+
+              // Add main.js if it's a new page
+              if (page.isNew) {
+                const jsDir = await pageDir.getDirectoryHandle('js', { create: true })
+                const jsh = await jsDir.getFileHandle('main.js', { create: true })
+                let oldJs = null
+                try { oldJs = await (await jsh.getFile()).text() } catch(e) {}
+                plannedWrites.push({ 
+                  handle: jsh, 
+                  path: `menu/${page.name}/js/main.js`, 
+                  newContent: '// ' + page.name + ' UI Logic\nconsole.log("' + page.name + ' loaded");\n', 
+                  oldContent: oldJs,
+                  onSaved: () => { delete page.isNew; }
+                })
+              }
             }
           } catch (htmlErr) {
             console.error('HTML export warning:', htmlErr)
@@ -202,6 +257,7 @@ export default {
             const writer = await w.handle.createWritable()
             await writer.write(w.newContent)
             await writer.close()
+            if (w.onSaved) w.onSaved()
           }
           if (loadingEl) window.UI?.hideLoading?.()
 
@@ -226,19 +282,32 @@ export default {
       }
     }
 
-    async function loadProject() {
+    async function loadProject(handleOrEvent = null) {
+      const specificHandle = (handleOrEvent && handleOrEvent.kind === 'directory') ? handleOrEvent : null;
       try {
         if (window.showDirectoryPicker) {
-          const dirHandle = await window.showDirectoryPicker()
+          const dirHandle = specificHandle || await window.showDirectoryPicker()
           store.dirHandle = dirHandle;
+          
           const fileHandle = await dirHandle.getFileHandle('cms_project.json')
           const file = await fileHandle.getFile()
           const text = await file.text()
           store.fromJSON(text)
+
+          // Auto-discovery sync on every load
+          const foundNew = await syncProjectWithFileSystem(dirHandle)
+
           store.projectPath = dirHandle.name
           store.selectedPageType = null
           store.selectedPageId = null
-          showSnack('両方のページとプロジェクト設定を読み込みました: ' + dirHandle.name)
+          
+          await storeHandle('last_project', dirHandle)
+          
+          if (foundNew) {
+            showSnack('新しいフォルダを発見し反映しました。「SAVE」して保存してください。')
+          } else {
+            showSnack('プロジェクト情報を読み込みました: ' + dirHandle.name)
+          }
         } else {
           // Fallback: file input
           const input = document.createElement('input')
