@@ -18,10 +18,10 @@ const USER_MENU_HTML = `
         <span class="material-icons" style="font-size:16px;">arrow_drop_down</span>
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" id="user-action-password" onclick="event.preventDefault(); console.log('Click: Password Change');">
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" id="user-action-password" onclick="if(typeof event !== 'undefined') event.preventDefault(); console.log('Click: Password Change');">
           <span class="material-icons" style="font-size:18px;">vpn_key</span> パスワード変更
         </a></li>
-        <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" id="user-action-logout" onclick="event.preventDefault(); console.log('Click: Logout');">
+        <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" id="user-action-logout" onclick="if(typeof event !== 'undefined') event.preventDefault(); console.log('Click: Logout');">
           <span class="material-icons" style="font-size:18px;">logout</span> ログアウト
         </a></li>
       </ul>
@@ -200,7 +200,7 @@ export function generateMenuPhp(page, options = {}) {
           <div class="collapse" id="submenu-${mIdx}">
             <ul class="nav flex-column ms-3">${menu.submenus.map((sub, sIdx) => `
               <li class="nav-item">
-                <a class="nav-link text-white-50 py-1" href="#" onclick="event.preventDefault(); showContent('content-${mIdx}-${sIdx}')">${sub.name}</a>
+                <a class="nav-link text-white-50 py-1" href="#" onclick="if(typeof event !== 'undefined') event.preventDefault(); showContent('content-${mIdx}-${sIdx}')">${sub.name}</a>
               </li>
             `).join('')}</ul>
           </div>
@@ -209,7 +209,7 @@ export function generateMenuPhp(page, options = {}) {
     } else {
       return `
         <li class="nav-item">
-          <a class="nav-link text-white" href="#" onclick="event.preventDefault(); showContentDirect('content-${mIdx}-main')">${menu.name}</a>
+          <a class="nav-link text-white" href="#" onclick="if(typeof event !== 'undefined') event.preventDefault(); showContentDirect('content-${mIdx}-main')">${menu.name}</a>
         </li>
       `
     }
@@ -285,10 +285,12 @@ export function generateMenuPhp(page, options = {}) {
     ${GLB_UI_SCRIPT}
 
     function showContentDirect(id) {
-      // Close any open collapse submenus
-      document.querySelectorAll('.sidebar .collapse.show').forEach(el => {
-        bootstrap.Collapse.getOrCreateInstance(el).hide();
-      });
+      // Close any open collapse submenus safely
+      if (typeof bootstrap !== 'undefined') {
+        document.querySelectorAll('.sidebar .collapse.show').forEach(el => {
+          bootstrap.Collapse.getOrCreateInstance(el).hide();
+        });
+      }
       showContent(id);
     }
     function showContent(id) {
