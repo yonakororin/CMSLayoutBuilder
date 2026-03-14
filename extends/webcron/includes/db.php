@@ -40,5 +40,7 @@ try {
     )");
     
 } catch (PDOException $e) {
-    die("データベース接続エラー: " . $e->getMessage() . "<br>DB Path: " . htmlspecialchars($db_file));
+    echo "<div style='color:red; font-weight:bold;'>データベース接続エラー: " . htmlspecialchars($e->getMessage()) . "<br>DB Path: " . htmlspecialchars($db_file) . "</div>";
+    $db = null;
+    return;
 }

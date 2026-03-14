@@ -14,13 +14,19 @@ function get_current_base_url() {
     return $protocol . $host . $path;
 }
 
-$base_url = get_current_base_url();
-$sso_url = '../../../yoSSO'; // Adjusted for relative path
-
+/*
 if (!isset($_SESSION['user'])) {
-    header("Location: $sso_url/?redirect_uri=" . urlencode("$base_url/callback.php"));
-    exit;
+    if (!headers_sent()) {
+        header("Location: $sso_url/?redirect_uri=" . urlencode("$base_url/callback.php"));
+        exit;
+    } else {
+        echo "<script>window.location.href = '" . $sso_url . "/?redirect_uri=" . urlencode("$base_url/callback.php") . "';</script>";
+        echo "<p>認証が必要です。ログイン画面へ移動します...</p>";
+        $jobs = []; $env_vars = []; $wrappers = []; $message = ''; $error = ''; $job_to_edit = null; $env_names = []; $wrapper_names = [];
+        return;
+    }
 }
+*/
 
 // エラー報告設定
 ini_set('display_errors', 1);
@@ -96,8 +102,11 @@ $env_vars = [];
 $wrappers = [];
 $cron_user_setting = 'root';
 
+$env_names = [];
+$wrapper_names = [];
+
 // 編集ID取得
-if (isset($_GET['edit_id'])) {
+if (isset($_GET['edit_id']) && $db) {
     $edit_id = (int)$_GET['edit_id'];
     try {
         $stmt = $db->prepare("SELECT * FROM jobs WHERE id = ?");
@@ -107,21 +116,23 @@ if (isset($_GET['edit_id'])) {
 }
 
 // データ一覧取得
-try {
-    $sql = "SELECT j.*, s.start_time, s.end_time, s.exit_code FROM jobs j LEFT JOIN job_status s ON j.id = s.job_id ORDER BY j.id DESC";
-    $jobs = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    $env_vars = $db->query("SELECT * FROM environment_variables ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $wrappers = $db->query("SELECT * FROM wrappers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    $stmt = $db->query("SELECT value FROM settings WHERE name = 'cron_user'");
-    $setting_val = $stmt->fetchColumn();
-    if ($setting_val) $cron_user_setting = $setting_val;
-} catch (PDOException $e) {
-    if (!isset($error)) $error = "";
-    $error .= "データ取得エラー: " . $e->getMessage();
+if ($db) {
+    try {
+        $sql = "SELECT j.*, s.start_time, s.end_time, s.exit_code FROM jobs j LEFT JOIN job_status s ON j.id = s.job_id ORDER BY j.id DESC";
+        $jobs = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $env_vars = $db->query("SELECT * FROM environment_variables ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $wrappers = $db->query("SELECT * FROM wrappers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $db->query("SELECT value FROM settings WHERE name = 'cron_user'");
+        $setting_val = $stmt->fetchColumn();
+        if ($setting_val) $cron_user_setting = $setting_val;
+        
+        $env_names = array_column($env_vars, 'name');
+        $wrapper_names = array_column($wrappers, 'name');
+    } catch (PDOException $e) {
+        if (!isset($error)) $error = "";
+        $error .= "データ取得エラー: " . $e->getMessage();
+    }
 }
-
-$env_names = array_column($env_vars, 'name');
-$wrapper_names = array_column($wrappers, 'name');
 
 if (!function_exists('highlightCommand')) {
     function highlightCommand($command, $env_names, $wrapper_names) {

@@ -76,12 +76,12 @@ function editWrapper(button) {
 // ==========================================
 // 3. マニュアル表示 (モーダル)
 // ==========================================
-const modal = document.getElementById("manualModal");
-const btn = document.getElementById("openManual");
-const span = document.getElementsByClassName("close-button")[0];
-const contentDiv = document.getElementById("manualContent");
-const manualFilePath = 'manual.md';
-let manualLoadedSuccessfully = false;
+var modal = document.getElementById("manualModal");
+var btn = document.getElementById("openManual");
+var span = document.getElementsByClassName("close-button")[0];
+var contentDiv = document.getElementById("manualContent");
+var manualFilePath = 'manual.md';
+var manualLoadedSuccessfully = false;
 
 async function loadAndRenderManual() {
     try {
