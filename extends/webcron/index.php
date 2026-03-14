@@ -136,13 +136,7 @@
   <?php require __DIR__ . '/views/tab_jobs.php'; ?>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-<script src="assets/script.js"></script>
-<script>
-  // Overide openTab to do nothing or handle it via bridge if needed
-  window.openTab = function(e, id) { console.log('Tab switch:', id); };
-  // Force show the content since style.css might hide .tab-content
-  const jm = document.getElementById('job_manager'); if (jm) jm.style.display = 'block';
-</script></div>
+<script src="assets/script.js"></script></div>
       </div>
     </div>
   
@@ -160,11 +154,7 @@
   <?php if ($error): ?><div class="message error">🚨 エラー: <?= htmlspecialchars($error) ?></div><?php endif; ?>
   <?php require __DIR__ . '/views/tab_env.php'; ?>
 </div>
-<script src="assets/script.js"></script>
-<script>
-  window.openTab = function(e, id) { console.log('Tab switch:', id); };
-  const es = document.getElementById('env_settings'); if (es) es.style.display = 'block';
-</script></div>
+<script src="assets/script.js"></script></div>
       </div>
     </div>
   

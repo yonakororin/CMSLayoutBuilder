@@ -157,9 +157,7 @@ header {
 }
 
 .tab-content {
-    display: none;
     padding: 20px 0;
-    animation: fadeEffect 0.5s;
 }
 
 @keyframes fadeEffect {
@@ -433,7 +431,7 @@ table code,
     margin-bottom: 10px;
 }
 
-/* Ensure tab content is hidden by default (script handles display) */
+/* Ensure tab content displays normally when managed by bootstrap */
 .tab-content {
-    display: none;
+    display: block;
 }

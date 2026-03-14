@@ -1,4 +1,4 @@
-<div id="job_manager" class="tab-content" style="display: <?= ($current_tab === 'job_manager' ? 'block' : 'none') ?>;">
+<div id="job_manager_inner" class="tab-content" style="display: <?= ($current_tab === 'job_manager' ? 'block' : 'none') ?>;">
     <?php if ($job_to_edit): ?>
     <h2>ジョブID: <?= $job_to_edit['id'] ?> の編集</h2>
     <form method="POST" id="editJobForm" style="border-color: #007bff;">

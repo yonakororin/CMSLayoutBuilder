@@ -1,4 +1,4 @@
-<div id="env_settings" class="tab-content" style="display: <?= ($current_tab === 'env_settings' ? 'block' : 'none') ?>;">
+<div id="env_settings_inner" class="tab-content" style="display: <?= ($current_tab === 'env_settings' ? 'block' : 'none') ?>;">
     <div class="settings-section">
         <h3>システム設定</h3>
         <form method="POST" class="settings-form">
