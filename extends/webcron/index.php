@@ -141,7 +141,7 @@
   // Overide openTab to do nothing or handle it via bridge if needed
   window.openTab = function(e, id) { console.log('Tab switch:', id); };
   // Force show the content since style.css might hide .tab-content
-  document.getElementById('job_manager').style.display = 'block';
+  const jm = document.getElementById('job_manager'); if (jm) jm.style.display = 'block';
 </script></div>
       </div>
     </div>
@@ -163,7 +163,7 @@
 <script src="assets/script.js"></script>
 <script>
   window.openTab = function(e, id) { console.log('Tab switch:', id); };
-  document.getElementById('env_settings').style.display = 'block';
+  const es = document.getElementById('env_settings'); if (es) es.style.display = 'block';
 </script></div>
       </div>
     </div>
