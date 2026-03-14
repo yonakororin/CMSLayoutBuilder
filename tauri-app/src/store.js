@@ -367,7 +367,7 @@ export const store = reactive({
         }
     },
 
-    syncFromFileSystem(portalFolders, menuFolders) {
+    syncFromFileSystem(portalFolders, menuFolders, menuPageImports = []) {
         let changed = false;
         // Sync Portal Pages
         portalFolders.forEach(folderName => {
@@ -387,12 +387,42 @@ export const store = reactive({
         menuFolders.forEach(folderName => {
             const exists = this.menuPages.some(m => m.name === folderName)
             if (!exists) {
-                this.menuPages.push({
-                    id: generateId(),
-                    name: folderName,
-                    menus: [],
-                    discovered: true
-                })
+                // Check if we have an imported configuration for this folder
+                const importedLayout = menuPageImports.find(imp => imp.name === folderName)
+
+                if (importedLayout) {
+                    // Clone the imported layout and regenerate IDs to avoid collisions
+                    const newPage = JSON.parse(JSON.stringify(importedLayout))
+                    newPage.id = generateId()
+                    newPage.isNew = true // Treat as new so JS gets generated if needed
+                    newPage.discovered = true
+                    
+                    if (newPage.menus) {
+                        newPage.menus.forEach(menu => {
+                            menu.id = generateId()
+                            if (menu.tabs) {
+                                menu.tabs.forEach(tab => {
+                                    tab.id = generateId()
+                                    if (tab.components) {
+                                        tab.components.forEach(comp => {
+                                            comp.id = generateId()
+                                        })
+                                    }
+                                })
+                            }
+                        })
+                    }
+                    this.menuPages.push(newPage)
+                } else {
+                    // Default empty page
+                    this.menuPages.push({
+                        id: generateId(),
+                        name: folderName,
+                        menus: [],
+                        discovered: true,
+                        isNew: true
+                    })
+                }
                 changed = true;
             }
         })

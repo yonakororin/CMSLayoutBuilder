@@ -147,14 +147,32 @@ export default {
             if (entry.kind === 'directory') portalNames.push(entry.name)
           }
         } catch(e) {}
+        const menuPageImports = []
         try {
           const menuDir = await dirHandle.getDirectoryHandle('menu')
           for await (const entry of menuDir.values()) {
-            if (entry.kind === 'directory') menuNames.push(entry.name)
+            if (entry.kind === 'directory') {
+              menuNames.push(entry.name)
+              // Attempt to read cms_project.json inside this directory
+              try {
+                const projectFile = await entry.getFileHandle('cms_project.json')
+                const file = await projectFile.getFile()
+                const text = await file.text()
+                const data = JSON.parse(text)
+                if (data && data.menuPages && data.menuPages.length > 0) {
+                  // Push the first menu page as an import template
+                  const importedPage = data.menuPages[0]
+                  importedPage.name = entry.name // Ensure the name matches the folder
+                  menuPageImports.push(importedPage)
+                }
+              } catch(e) {
+                // No cms_project.json found, ignore
+              }
+            }
           }
         } catch(e) {}
 
-        const changed = store.syncFromFileSystem(portalNames, menuNames)
+        const changed = store.syncFromFileSystem(portalNames, menuNames, menuPageImports)
         console.log('Discovery sync completed, changed:', changed)
         return changed
       }
